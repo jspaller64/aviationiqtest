@@ -1890,6 +1890,29 @@
   });
 
   function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+  // Anti-repeat: remember questions already seen (per browser) and deal from the
+  // unseen ones first, so nothing repeats until the whole pool has been cycled.
+  const RECENT_KEY = "aviationiq_recent_v1";
+  const RECENT_CAP = 2000;
+  function loadRecent(){ try{ return JSON.parse(localStorage.getItem(RECENT_KEY)||"[]")||[]; }catch(e){ return []; } }
+  function saveRecent(a){ try{ localStorage.setItem(RECENT_KEY, JSON.stringify(a)); }catch(e){} }
+  function qKey(q){ return q.q; }             // question text is a stable identifier
+  function buildRun(pool){
+    const n = Math.min(RUN_SIZE, pool.length);
+    let recent = loadRecent();
+    const pos = new Map(recent.map((k,i)=>[k,i]));   // key -> recency (higher = more recent)
+    const unseen = [], seen = [];
+    for(const q of pool){ (pos.has(qKey(q)) ? seen : unseen).push(q); }
+    seen.sort((a,b)=> pos.get(qKey(a)) - pos.get(qKey(b)));   // least-recently-seen first
+    let chosen = shuffle(unseen);
+    if(chosen.length < n) chosen = chosen.concat(seen.slice(0, n - chosen.length));
+    chosen = chosen.slice(0, n);
+    recent = recent.concat(chosen.map(qKey));
+    if(recent.length > RECENT_CAP) recent = recent.slice(recent.length - RECENT_CAP);
+    saveRecent(recent);
+    return shuffle(chosen);   // randomize presentation order within the run
+  }
   function setStrip(label,done,total){ stripLabel.textContent=label; stripCount.textContent=done+" / "+total; bar.style.width=(total?(done/total*100):0)+"%"; }
 
   // ---- Timer ----
@@ -1953,7 +1976,7 @@
       <div class="hero">
         <p class="kicker">Preflight Briefing</p>
         <h1>How high is your<br>aviation IQ?</h1>
-        <p class="lede">Choose a rating, then fly ${runN} questions drawn at random from the ${p.length}-question ${difficulty.name} pool. Questions and answers reshuffle every run.</p>
+        <p class="lede">Choose a rating, then fly ${runN} questions from the ${p.length}-question ${difficulty.name} pool. You won't see a question again until you've worked through the whole pool; answer order reshuffles every run.</p>
         <div class="levelsel" role="group" aria-label="Difficulty">${sel}</div>
         <p class="lvlblurb">${difficulty.blurb}</p>
         <div class="warnnote">⏱ ${QUESTION_TIME}s per question. Cruise for the first 5s — then the engine and wind wind up into a dive, a stall horn blares in the final 3s, and zero means a crash (scored as missed). Answer in time for a recovery pull-out. Sound on for the full effect.</div>
@@ -1974,7 +1997,7 @@
   }
   function beginRun(){
     const p = poolFor(difficulty);
-    deck = shuffle(p).slice(0, Math.min(RUN_SIZE, p.length));
+    deck = buildRun(p);
     idx=0; answers=[]; times=[]; locked=false;
     renderQuestion();
   }
