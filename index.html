@@ -1,0 +1,1883 @@
+<title>Aviation IQ Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#070c12;
+    --panel:#0d1620;
+    --panel-2:#101e2a;
+    --edge:#1d3242;
+    --edge-soft:#152634;
+    --ink:#dfeaf2;
+    --ink-dim:#7f95a6;
+    --cyan:#41d3ff;
+    --green:#3ee08f;
+    --amber:#ffb020;
+    --red:#ff5b6e;
+    --disp:"Chakra Petch", "Bahnschrift", sans-serif;
+    --body:"IBM Plex Sans", system-ui, sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #12212e 0%, rgba(18,33,46,0) 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--body);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 16px;
+    line-height:1.5;
+  }
+  .frame{ width:100%; max-width:640px; }
+
+  .topline{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:14px;
+  }
+  .brand{
+    font-family:var(--disp); font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; font-size:clamp(15px,3.4vw,20px); color:var(--ink);
+  }
+  .brand b{color:var(--cyan);}
+  .topright{display:flex;align-items:center;gap:12px;}
+  .tail{
+    font-family:var(--mono); font-size:11px; color:var(--ink-dim);
+    letter-spacing:.12em; white-space:nowrap;
+  }
+  .sndbtn{
+    font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+    color:var(--ink-dim); background:transparent; border:1px solid var(--edge);
+    border-radius:6px; padding:6px 9px; cursor:pointer;
+  }
+  .sndbtn:hover{border-color:var(--cyan);color:var(--ink);}
+  .sndbtn[aria-pressed="true"]{color:var(--cyan);border-color:#2a4a5c;}
+  .sndbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+  .panel{
+    position:relative;
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--edge); border-radius:16px;
+    box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(120,180,220,.06);
+    overflow:hidden;
+  }
+  .panel.shake{ animation:shake .32s infinite; }
+  @keyframes shake{
+    0%,100%{transform:translate(0,0);}
+    20%{transform:translate(-2px,1px);}
+    40%{transform:translate(2px,-1px);}
+    60%{transform:translate(-2px,-1px);}
+    80%{transform:translate(2px,1px);}
+  }
+  .vignette{
+    position:absolute; inset:0; pointer-events:none; z-index:6;
+    box-shadow:inset 0 0 80px 12px rgba(255,50,70,.0);
+    opacity:0; transition:opacity .25s, box-shadow .25s;
+  }
+  .panel.danger .vignette{ opacity:1; box-shadow:inset 0 0 90px 16px rgba(255,50,70,.55); }
+  .caution{
+    position:absolute; top:56px; left:50%; transform:translateX(-50%);
+    z-index:8; display:none;
+    font-family:var(--disp); font-weight:700; letter-spacing:.14em;
+    font-size:12px; text-transform:uppercase; color:#1a0f00;
+    background:var(--amber); border:1px solid #ffd27a;
+    padding:6px 14px; border-radius:6px;
+    box-shadow:0 4px 14px rgba(255,176,32,.5);
+  }
+  .caution.show{ display:block; animation:cflash .6s steps(1) infinite; }
+  .caution.reduced{ animation:none; opacity:1; }
+  @keyframes cflash{ 0%,49%{opacity:1;} 50%,100%{opacity:.15;} }
+
+  .strip{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; border-bottom:1px solid var(--edge-soft);
+    background:rgba(6,12,18,.5); font-family:var(--mono); font-size:11px;
+    color:var(--ink-dim); letter-spacing:.08em;
+  }
+  .track{
+    position:relative; flex:1; height:6px; border-radius:999px;
+    background:#0a1520; border:1px solid var(--edge-soft); overflow:hidden;
+  }
+  .track > i{
+    position:absolute; left:0; top:0; bottom:0; width:0%;
+    background:linear-gradient(90deg,#1e6a8c,var(--cyan));
+    box-shadow:0 0 12px rgba(65,211,255,.6);
+    transition:width .4s cubic-bezier(.4,0,.2,1);
+  }
+  .readout{color:var(--cyan);font-weight:600;}
+
+  .body{padding:26px 22px 24px; position:relative; z-index:2;}
+
+  .hero{text-align:center;padding:14px 6px 4px;}
+  .hero h1{
+    font-family:var(--disp); font-weight:700; font-size:clamp(26px,6.6vw,40px);
+    letter-spacing:.02em; margin:0 0 6px; text-wrap:balance;
+    background:linear-gradient(180deg,#eaf6ff,#8fd4ef);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .kicker{
+    font-family:var(--mono); text-transform:uppercase; letter-spacing:.22em;
+    font-size:11px; color:var(--amber); margin:0 0 18px;
+  }
+  .lede{color:var(--ink-dim);max-width:46ch;margin:0 auto 20px;font-size:15px;}
+  .levelsel{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px;}
+  .lvl{
+    font-family:var(--disp);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:12px;
+    color:var(--ink-dim);background:var(--panel-2);border:1px solid var(--edge);border-radius:8px;
+    padding:10px 18px;cursor:pointer;transition:color .15s,background .15s,border-color .15s,box-shadow .15s;
+  }
+  .lvl:hover{border-color:var(--cyan);color:var(--ink);}
+  .lvl.on{color:#04140b;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(65,211,255,.4);}
+  .lvl:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+  .lvlblurb{font-size:12px;color:var(--ink-dim);margin:0 auto 20px;max-width:42ch;min-height:1.1em;}
+  .warnnote{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--red);
+    border:1px solid rgba(255,91,110,.35);border-radius:8px;
+    padding:9px 12px;max-width:44ch;margin:0 auto 22px;
+  }
+  .specs{
+    display:flex; justify-content:center; gap:0;
+    border:1px solid var(--edge-soft); border-radius:10px; overflow:hidden;
+    margin:0 auto 24px; max-width:400px;
+  }
+  .specs div{flex:1;padding:12px 8px;text-align:center;}
+  .specs div + div{border-left:1px solid var(--edge-soft);}
+  .specs .n{font-family:var(--mono);font-size:20px;color:var(--cyan);font-weight:600;}
+  .specs .l{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-top:4px;}
+
+  .qmeta{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+    color:var(--ink-dim); text-transform:uppercase; margin-bottom:14px; gap:10px;
+  }
+  .qmeta .cat{color:var(--amber);}
+  .qmeta .eng{color:var(--ink-dim);font-weight:400;letter-spacing:.06em;}
+  .qmeta .mid{flex:1;text-align:center;}
+  .timer{ position:relative; width:44px; height:44px; flex:none; }
+  .timer svg{ transform:rotate(-90deg); display:block; }
+  .timer .tnum{
+    position:absolute; inset:0; display:grid; place-items:center;
+    font-family:var(--mono); font-size:14px; font-weight:600; color:var(--cyan);
+  }
+
+  .question{
+    font-family:var(--disp); font-weight:600; font-size:clamp(19px,4.4vw,24px);
+    line-height:1.32; margin:0 0 22px; text-wrap:balance;
+  }
+  .options{display:flex;flex-direction:column;gap:11px;}
+  .opt{
+    display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+    background:var(--panel-2); border:1px solid var(--edge); border-radius:11px;
+    padding:14px 16px; color:var(--ink); font-family:var(--body); font-size:15px;
+    cursor:pointer; transition:border-color .15s, background .15s, transform .05s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--cyan);background:#12222f;}
+  .opt:active:not(:disabled){transform:translateY(1px);}
+  .opt:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+  .opt .key{
+    flex:none; width:26px;height:26px;border-radius:6px; display:grid;place-items:center;
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    background:#0a1520;border:1px solid var(--edge);color:var(--ink-dim);
+  }
+  .opt.correct{border-color:var(--green);background:rgba(62,224,143,.12);}
+  .opt.correct .key{background:var(--green);color:#04140b;border-color:var(--green);}
+  .opt.wrong{border-color:var(--red);background:rgba(255,91,110,.12);}
+  .opt.wrong .key{background:var(--red);color:#1a0508;border-color:var(--red);}
+  .opt:disabled{cursor:default;}
+  .opt.dim{opacity:.5;}
+
+  .explain{
+    margin-top:16px; border-left:3px solid var(--cyan);
+    background:rgba(65,211,255,.06); padding:12px 14px;
+    border-radius:0 8px 8px 0; font-size:14px; color:var(--ink);
+  }
+  .explain.ok{border-left-color:var(--green);background:rgba(62,224,143,.07);}
+  .explain.no{border-left-color:var(--red);background:rgba(255,91,110,.07);}
+  .explain .tag{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    display:block;margin-bottom:4px;
+  }
+  .explain.ok .tag{color:var(--green);}
+  .explain.no .tag{color:var(--red);}
+
+  .actions{display:flex;justify-content:flex-end;margin-top:20px;}
+  .btn{
+    font-family:var(--disp);font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;font-size:14px;
+    background:linear-gradient(180deg,#1f8fbf,#136a92);
+    color:#eafaff;border:1px solid #3aa9d6;
+    padding:13px 26px;border-radius:10px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(19,106,146,.4);
+    transition:filter .15s, transform .05s;
+  }
+  .btn:hover{filter:brightness(1.12);}
+  .btn:active{transform:translateY(1px);}
+  .btn:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;}
+
+  .gauge{ position:relative;width:190px;height:190px;margin:6px auto 18px; }
+  .gauge svg{transform:rotate(-90deg);}
+  .gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .gauge .pct{font-family:var(--mono);font-size:40px;font-weight:600;color:var(--cyan);}
+  .gauge .of{font-family:var(--mono);font-size:12px;color:var(--ink-dim);letter-spacing:.1em;}
+  .rank{font-family:var(--disp);font-weight:700;font-size:clamp(22px,5vw,30px);letter-spacing:.02em;margin:2px 0 6px;text-wrap:balance;}
+  .rankwing{color:var(--amber);}
+  .rankdesc{color:var(--ink-dim);max-width:44ch;margin:0 auto 20px;font-size:15px;}
+  .tmonote{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin:0 0 20px;letter-spacing:.05em;}
+  .tmonote b{color:var(--red);}
+  .catscores{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 22px;}
+  .chip{font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--edge);border-radius:999px;padding:6px 11px;color:var(--ink-dim);}
+  .chip b{color:var(--ink);font-weight:600;}
+  .chip.hi{border-color:var(--green);color:var(--green);}
+  .chip.lo{border-color:var(--red);color:var(--red);}
+  .breakdown{text-align:left;border:1px solid var(--edge-soft);border-radius:10px;margin:0 0 22px;max-height:230px;overflow:auto;}
+  .br-row{display:flex;gap:12px;padding:11px 14px;font-size:13px;align-items:flex-start;}
+  .br-row + .br-row{border-top:1px solid var(--edge-soft);}
+  .br-row .mark{font-family:var(--mono);flex:none;font-weight:600;}
+  .br-row .mark.y{color:var(--green);}
+  .br-row .mark.n{color:var(--red);}
+  .br-row .q{color:var(--ink);}
+  .br-row .a{color:var(--ink-dim);display:block;margin-top:2px;font-size:12px;}
+  .center{text-align:center;}
+  .endbtns{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;}
+  .cleanmark{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--green);}
+  .rvhead{text-align:center;padding:10px 6px 4px;}
+  .rvtitle{font-family:var(--disp);font-weight:700;font-size:clamp(20px,5vw,26px);margin:2px 0 6px;color:var(--ink);}
+  .reviewlist{display:flex;flex-direction:column;gap:14px;margin:8px 0 22px;text-align:left;}
+  .rvcard{border:1px solid var(--edge);border-radius:12px;padding:14px 16px;background:var(--panel-2);}
+  .rvmeta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;}
+  .rvmeta .cat{color:var(--amber);}
+  .rvtag{padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap;}
+  .rvtag.bad{color:var(--red);border-color:var(--red);}
+  .rvtag.slow{color:var(--amber);border-color:var(--amber);}
+  .rvq{font-family:var(--disp);font-weight:600;font-size:16px;line-height:1.35;margin-bottom:11px;text-wrap:balance;}
+  .rvopts{display:flex;flex-direction:column;gap:6px;margin-bottom:11px;}
+  .rv-opt{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--ink-dim);
+    padding:8px 11px;border:1px solid var(--edge-soft);border-radius:8px;}
+  .rv-opt .rv-key{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-top:1px;}
+  .rv-opt.correct{color:var(--green);border-color:var(--green);background:rgba(62,224,143,.08);}
+  .rv-opt.correct .rv-key{color:var(--green);}
+  .rv-opt.wrong{color:var(--red);border-color:var(--red);background:rgba(255,91,110,.08);}
+  .rv-opt.wrong .rv-key{color:var(--red);}
+  .rvstudy{margin-top:12px;padding-top:11px;border-top:1px dashed var(--edge);font-size:13px;color:var(--ink-dim);line-height:1.5;}
+  .rvstudy .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:4px;}
+  .rvstudy a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(65,211,255,.4);white-space:nowrap;}
+  .rvstudy a:hover{border-bottom-color:var(--cyan);}
+  .rvstudy a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+  .foot{text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink-dim);letter-spacing:.12em;margin-top:14px;}
+  .hidden{display:none !important;}
+  @media (prefers-reduced-motion: reduce){
+    .track > i{transition:none;}
+    .panel.shake{animation:none;}
+  }
+</style>
+
+<div class="frame">
+  <div class="topline">
+    <div class="brand">AVIATION <b>IQ</b> CHECK</div>
+    <div class="topright">
+      <button class="sndbtn" id="sndBtn" aria-pressed="true" title="Toggle warning sounds">♪ SOUND</button>
+      <div class="tail" id="tail">STANDBY</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="vignette"></div>
+    <div class="caution" id="caution">⚠ MASTER CAUTION</div>
+    <div class="strip" id="strip">
+      <span id="stripLabel">PREFLIGHT</span>
+      <div class="track"><i id="bar"></i></div>
+      <span class="readout" id="stripCount">0 / 0</span>
+    </div>
+    <div class="body" id="body"><!-- screens injected here --></div>
+  </div>
+
+  <div class="foot">NO AUTHORITY FOR REAL-WORLD FLIGHT · FOR FUN &amp; LEARNING ONLY</div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const QUESTION_TIME = 15;   // seconds per question
+  const RUN_SIZE = 40;        // questions drawn per run from the pool
+  const SLOW_THRESHOLD = 8;   // seconds; slower answers are flagged for review
+
+  const QUESTIONS = [
+    { cat:"Aerodynamics", q:"A given wing always stalls at the same…",
+      opts:["Indicated airspeed","Critical angle of attack","Pitch attitude","Bank angle"], correct:1,
+      why:"A stall is defined by exceeding the critical angle of attack — not by any airspeed. That's why an aircraft can stall at high speed in a steep pull-up or while pointed downhill." },
+    { cat:"Aerodynamics", q:"In a level, coordinated 60° bank turn, the load factor is approximately…",
+      opts:["1.5 G","2 G","3 G","4 G"], correct:1,
+      why:"Load factor in a level turn is 1/cos(bank); cos 60° = 0.5, so n ≈ 2 G. Stall speed rises by √2 (≈41%) at that load." },
+    { cat:"Performance", q:"During takeoff, what does V1 mean?",
+      opts:["The speed at which the wheels leave the ground","Best rate-of-climb speed after liftoff","Takeoff decision speed — beyond it you're committed to fly","The airframe's never-exceed speed"], correct:2,
+      why:"V1 is decision speed: before it you can reject and stop on the remaining runway; at or after it you continue the takeoff even with an engine failure. Rotation speed is VR." },
+    { cat:"Performance", q:"Vx and Vy differ in that Vx gives you…",
+      opts:["The most altitude gained per unit of time","The most altitude gained per unit of horizontal distance","The lowest fuel burn in cruise","The highest true airspeed in a climb"], correct:1,
+      why:"Vx (best angle of climb) maximizes height gained over ground distance — used to clear obstacles. Vy (best rate) maximizes height gained per minute. Vx is slower than Vy at low altitude." },
+    { cat:"Performance", q:"Flying on the “back side of the power curve” (region of reversed command) means…",
+      opts:["You need less power to fly slower","You need more power to fly slower","Thrust no longer affects airspeed","The aircraft cannot be trimmed"], correct:1,
+      why:"Below the speed for minimum drag (roughly L/Dmax), induced drag dominates, so flying slower actually requires MORE power. This regime bites on short-field and slow approaches." },
+    { cat:"High-Altitude", q:"At very high altitude the gap between low-speed stall and high-speed Mach buffet shrinks to almost nothing. This regime is nicknamed…",
+      opts:["The service ceiling","Coffin corner","Ground effect","The transition layer"], correct:1,
+      why:"“Coffin corner” — the aerodynamic ceiling where stall speed and critical Mach nearly meet, leaving a razor-thin speed band. Slow down and you stall; speed up and you hit Mach buffet." },
+    { cat:"High-Altitude", q:"As a swept-wing jet approaches its critical Mach number, shockwaves can shift the center of pressure aft, producing…",
+      opts:["An uncommanded nose-up pitch","An uncommanded nose-down pitch (Mach tuck)","A sudden roll to the left","A loss of all elevator authority only"], correct:1,
+      why:"Mach tuck: the aft movement of the center of pressure pitches the nose down, which can accelerate the aircraft further into the problem. Mach trim systems counter it." },
+    { cat:"High-Altitude", q:"Climbing at a constant indicated airspeed, your true airspeed…",
+      opts:["Increases","Decreases","Stays exactly the same","Falls to zero at the tropopause"], correct:0,
+      why:"Thinner air means fewer molecules strike the pitot system, so a given IAS corresponds to a higher TAS as you climb — roughly +2% per 1,000 ft as a rule of thumb." },
+    { cat:"Control", q:"Which of these is a genuine left-turning tendency in a single-engine propeller aircraft?",
+      opts:["Adverse yaw","P-factor","Dutch roll","Mach tuck"], correct:1,
+      why:"The four left-turning tendencies are torque, P-factor, spiraling slipstream, and gyroscopic precession. Adverse yaw is a roll-related effect, not one of them." },
+    { cat:"Control", q:"Loading an aircraft with its center of gravity too far AFT tends to make it…",
+      opts:["More longitudinally stable and nose-heavy","Less longitudinally stable, with degraded stall/spin recovery","Impossible to rotate on takeoff","Unaffected — CG only changes range"], correct:1,
+      why:"An aft CG shortens the moment arm to the tail, reducing longitudinal stability and making stall and spin recovery harder — sometimes impossible past the aft limit." },
+    { cat:"Instruments", q:"If the STATIC port becomes blocked during a climb (pitot clear), the altimeter will…",
+      opts:["Read progressively too high","Read progressively too low","Freeze at the altitude where the blockage occurred","Immediately drop to zero"], correct:2,
+      why:"With no fresh static pressure reaching it, the altimeter is trapped and freezes at the blockage altitude. The airspeed indicator and VSI also misbehave until the alternate static source is used." },
+    { cat:"Instruments", q:"Traditional attitude, heading, and turn indicators work because a spinning gyro exhibits…",
+      opts:["Magnetic dip","Rigidity in space","Barometric hysteresis","Coriolis drift"], correct:1,
+      why:"Rigidity in space keeps a spinning gyro's axis fixed relative to space, giving a stable reference; precession is the second gyroscopic property these instruments exploit." },
+    { cat:"Navigation", q:"A VOR ground station provides an aircraft with…",
+      opts:["Slant-range distance to the station","Magnetic bearing information via 360 radials","A precision glidepath to the runway","Real-time winds aloft"], correct:1,
+      why:"A VOR defines magnetic radials to/from the station for course guidance. Distance is provided separately by co-located DME; glidepath is an ILS function." },
+    { cat:"Navigation", q:"On an ILS approach, the localizer provides ______ and the glideslope provides ______.",
+      opts:["Vertical guidance / lateral guidance","Lateral (centerline) guidance / vertical guidance","Distance / heading","Wind / temperature"], correct:1,
+      why:"Localizer = lateral guidance to the runway centerline; glideslope = vertical guidance down the descent path. Together they form the precision ILS." },
+    { cat:"Navigation", q:"A great-circle route between two points is…",
+      opts:["A line of constant compass heading","The shortest distance across the surface of the globe","Always due east or due west","The route that avoids all controlled airspace"], correct:1,
+      why:"A great circle is the shortest path over a sphere. A rhumb line (constant heading) is longer but simpler to fly, which historically mattered before modern nav systems." },
+    { cat:"Airspace / Regs", q:"In the U.S., Class B airspace is established around…",
+      opts:["Small untowered rural airports","The nation's busiest airports, shaped like an inverted wedding cake","Military operations areas only","Oceanic route structures"], correct:1,
+      why:"Class B surrounds the busiest hubs and is drawn as an upside-down tiered “wedding cake.” An explicit ATC clearance is required to enter." },
+    { cat:"Airspace / Regs", q:"For VFR in Class E below 10,000 ft MSL, the basic requirement is 3 SM visibility and cloud clearance of…",
+      opts:["Clear of clouds","500 ft below, 1,000 ft above, 2,000 ft horizontal","1,000 ft below, 1,000 ft above, 1 SM horizontal","No cloud clearance is required"], correct:1,
+      why:"The classic “3-152”: 3 statute miles visibility, 500 below, 1,000 above, 2,000 feet horizontal from clouds. Class B, by contrast, is just “clear of clouds.”" },
+    { cat:"Airspace / Regs", q:"Two aircraft at the same altitude are converging (not head-on). Right of way belongs to the aircraft…",
+      opts:["On the other's left","On the other's right","At the higher airspeed","That is heavier"], correct:1,
+      why:"Like boats, the aircraft on the right has right of way; the other gives way. (Different-category rules and head-on/overtaking cases have their own provisions.)" },
+    { cat:"Airspace / Regs", q:"For VFR flight during the day, U.S. rules require enough fuel to reach the destination plus a reserve of at least…",
+      opts:["10 minutes","30 minutes at normal cruise","45 minutes at normal cruise","No specific reserve"], correct:1,
+      why:"Day VFR reserve is 30 minutes at normal cruise; night VFR and IFR require 45 minutes. These are legal minimums, not good operating practice." },
+    { cat:"Weather", q:"A METAR reporting “BKN025” means…",
+      opts:["Broken clouds at 250 ft AGL","Broken clouds at 2,500 ft AGL","Broken clouds at 25,000 ft","Visibility of 2.5 statute miles"], correct:1,
+      why:"Cloud heights in a METAR are in hundreds of feet AGL, so 025 = 2,500 ft. A BKN or OVC layer constitutes a ceiling." },
+    { cat:"Weather", q:"Fog or low stratus becomes increasingly likely as the temperature/dewpoint spread…",
+      opts:["Grows larger","Narrows toward zero","Reverses (dewpoint above temperature)","Has no bearing on cloud"], correct:1,
+      why:"As temperature cools toward the dewpoint (spread → 0), the air reaches saturation and moisture condenses into fog or cloud." },
+    { cat:"Weather", q:"Hazardous structural icing is generally most likely in visible moisture at temperatures of about…",
+      opts:["+5°C to +15°C","0°C to roughly −20°C","−40°C and colder","Only while on the ground"], correct:1,
+      why:"Supercooled liquid droplets — which freeze on contact with the airframe — are most common from around freezing down to about −20°C. Far colder, moisture is mostly ice crystals that don't adhere as readily." },
+    { cat:"Weather", q:"The standard (ISA) sea-level values are 15°C and 29.92 inHg, with pressure decreasing roughly…",
+      opts:["1 inHg per 1,000 ft","1 inHg per 500 ft","1 inHg per 5,000 ft","0.1 inHg per 1,000 ft"], correct:0,
+      why:"About 1 inch of mercury per 1,000 ft near sea level — the basis for the altimeter and for the “1 inch = 1,000 ft” setting rule of thumb." },
+    { cat:"Systems", q:"In a modern high-bypass turbofan, most of the thrust is produced by…",
+      opts:["The hot exhaust jet from the core","The large front fan moving bypass air","Compressor bleed air","An afterburner"], correct:1,
+      why:"High-bypass engines get the bulk of their thrust from the fan accelerating a large mass of bypass air — quieter and far more efficient than a pure turbojet's high-velocity exhaust." },
+    { cat:"Systems", q:"A transponder operating in Mode C additionally reports the aircraft's…",
+      opts:["Ground track","Pressure altitude","True airspeed","Fuel state"], correct:1,
+      why:"Mode C adds pressure-altitude reporting to the beacon code, letting ATC see altitude on radar. Mode S adds a unique address and datalink capability." },
+    { cat:"Human Factors", q:"The hypoxia a healthy pilot suffers from simply climbing too high without oxygen is…",
+      opts:["Hypemic hypoxia","Hypoxic hypoxia","Stagnant hypoxia","Histotoxic hypoxia"], correct:1,
+      why:"Hypoxic (altitude) hypoxia comes from the reduced partial pressure of oxygen at altitude. Hypemic is reduced carrying capacity (e.g. CO); stagnant is poor circulation; histotoxic is cells that can't use O2." },
+    { cat:"Human Factors", q:"“The leans” — a stubborn false sensation of banking — originates in the…",
+      opts:["Eyes adjusting to darkness","Vestibular system of the inner ear","Onset of carbon-monoxide poisoning","Middle-ear pressure during descent"], correct:1,
+      why:"A roll entered too slowly to trigger the inner ear, followed by a sensed roll-out, leaves the vestibular system convinced you're still banked. Trust the attitude indicator over the seat of the pants." },
+    { cat:"Operations", q:"The strongest, most hazardous wingtip vortices are shed by an aircraft that is…",
+      opts:["Light, fast, and dirty (gear/flaps out)","Heavy, clean, and slow","Small and fast","Stationary on the ramp"], correct:1,
+      why:"Wake strength rises with weight and angle of attack and falls with span efficiency, so “heavy, clean, slow” (e.g. a big jet on approach/departure) makes the worst vortices. Hence spacing behind heavies." },
+    { cat:"Emergencies", q:"A pilot sets transponder code 7600. This signals…",
+      opts:["A general emergency","Lost radio communications","Unlawful interference (hijack)","A minimum-fuel state"], correct:1,
+      why:"7500 = hijack, 7600 = radio (communications) failure, 7700 = general emergency. Each triggers a distinct ATC alert." },
+
+    /* ---- Risk management & judgment (ADM) ---- */
+    { cat:"Risk Management", q:"A pilot thinks, “These rules are too restrictive — I know better.” This is the hazardous attitude of…",
+      opts:["Invulnerability","Anti-authority","Resignation","Impulsivity"], correct:1,
+      why:"Anti-authority. Its antidote is the phrase “Follow the rules — they are usually right.” The five hazardous attitudes are anti-authority, impulsivity, invulnerability, macho, and resignation." },
+    { cat:"Risk Management", q:"The recognized antidote to the “Invulnerability” attitude (“It won't happen to me”) is…",
+      opts:["“Not so fast — think first.”","“It could happen to me.”","“I'm not helpless.”","“Taking chances is foolish.”"], correct:1,
+      why:"“It could happen to me” counters the false belief that accidents only happen to others. (Anti-authority → follow the rules; impulsivity → not so fast; macho → taking chances is foolish; resignation → I'm not helpless.)" },
+    { cat:"Risk Management", q:"The IMSAFE checklist is used before a flight to evaluate…",
+      opts:["The aircraft's airworthiness","The pilot's own fitness to fly","The destination weather","The fuel and performance plan"], correct:1,
+      why:"IMSAFE — Illness, Medication, Stress, Alcohol, Fatigue, Emotion — is a self-assessment of the pilot. It's about you, not the machine." },
+    { cat:"Risk Management", q:"The PAVE risk-assessment model groups hazards into Pilot, Aircraft, enVironment, and…",
+      opts:["Altitude","External pressures","Visibility","Airspace"], correct:1,
+      why:"PAVE: Pilot, Aircraft, enVironment, External pressures. Naming the “External pressures” (schedules, passengers, bosses) makes that hidden risk visible so you can manage it." },
+    { cat:"Decision Making", q:"You're a VFR-only pilot; ceilings are dropping toward the hills ahead and passengers are eager to get home. The soundest decision is to…",
+      opts:["Descend and press on beneath the clouds","Divert or land and wait until conditions improve","Climb up through the layer to get on top","Speed up to beat the weather to the field"], correct:1,
+      why:"Deteriorating VFR into rising terrain is a classic fatal setup. Diverting or waiting costs time; scud-running or blundering into IMC costs lives. The airplane can always wait on the ground." },
+    { cat:"Decision Making", q:"Continued VFR flight into instrument conditions by a non-instrument pilot is so lethal chiefly because…",
+      opts:["The engine is likely to ice up and quit","Loss of the visual horizon causes spatial disorientation and loss of control","Radios stop working inside cloud","It is merely a paperwork violation"], correct:1,
+      why:"Studies famously put the average survival time at roughly 178 seconds. Without outside references, the vestibular system misleads the pilot into a spiral — control is lost fast." },
+    { cat:"Decision Making", q:"En route your fuel burn is running higher than planned, and you now project arriving below your legal reserve. The proactive choice is to…",
+      opts:["Continue and hope for a tailwind","Divert now to a nearer airport and refuel","Lean aggressively and carry on","Wait to act until the low-fuel light comes on"], correct:1,
+      why:"Decide early, while options are plentiful. Diverting to refuel is cheap and safe; pressing on until fuel is critical removes every margin — many fuel-exhaustion accidents began with a “we'll probably make it.”" },
+    { cat:"Decision Making", q:"A passenger urgently needs to be somewhere, but the weather is below your personal minimums. The professional response is to…",
+      opts:["Bend your minimums just this once — it's important","Hold firm to your personal minimums and delay or cancel","Let the passenger make the go/no-go call","Depart and re-evaluate once airborne"], correct:1,
+      why:"Personal minimums exist precisely to remove pressure from the moment. If they bend under a schedule, they aren't minimums. Get-there-itis is a leading factor in weather accidents." },
+    { cat:"Risk Management", q:"The “error chain” (Swiss-cheese) model teaches that most accidents result from…",
+      opts:["A single catastrophic mechanical failure","A sequence of small errors and holes lining up — any one of which, broken, could have prevented it","Pilot error and nothing else","Bad weather in essentially every case"], correct:1,
+      why:"Accidents are usually a chain of minor links. Recognizing and breaking any single link — ideally the earliest, the go/no-go decision — stops the sequence." },
+    { cat:"Decision Making", q:"The “sterile cockpit” concept calls for…",
+      opts:["Only one pilot speaking on the radio","No non-essential activities or conversation during critical phases of flight","A physically clean, uncluttered flight deck","No passengers seated up front"], correct:1,
+      why:"During taxi, takeoff, approach and landing (below 10,000 ft for airlines), chatter and distractions are set aside so attention stays on flying the aircraft." },
+
+    /* ---- Aerodynamics (expanded) ---- */
+    { cat:"Aerodynamics", q:"Induced drag — the drag penalty of producing lift — is greatest when the aircraft is flying…",
+      opts:["Fast, at low angle of attack","Slow, at high angle of attack","At cruise speed only","It never changes with speed"], correct:1,
+      why:"Induced drag rises as angle of attack increases, so it dominates at low speed (slow flight, climb, approach). Parasite drag, by contrast, grows with speed — the two cross near best-glide/L-Dmax." },
+    { cat:"Aerodynamics", q:"Ground effect — the reduction in induced drag near the surface — is significant within roughly…",
+      opts:["One wingspan of the ground","Ten wingspans of the ground","500 feet of the ground","Only while the wheels touch"], correct:0,
+      why:"Within about one wingspan of the surface the ground disrupts wingtip vortices and downwash, cutting induced drag. It can let an overloaded aircraft lift off but then fail to climb out." },
+    { cat:"Aerodynamics", q:"A wing's aspect ratio is the ratio of…",
+      opts:["Thickness to chord","Wingspan to mean chord","Lift to drag","Root chord to tip chord"], correct:1,
+      why:"Aspect ratio ≈ span²/area. High-aspect-ratio wings (gliders) have much less induced drag, which is why they glide so efficiently; low-aspect-ratio wings favor speed and maneuvering." },
+    { cat:"Aerodynamics", q:"“Washout” — a built-in twist reducing the angle of incidence toward the wingtips — exists so that…",
+      opts:["The wingtips stall before the root","The wing root stalls before the tips","Both stall simultaneously","Top speed increases"], correct:1,
+      why:"Washout makes the root stall first, keeping airflow attached at the tips where the ailerons are — so roll control survives into the early stall and spin tendencies are reduced." },
+    { cat:"Aerodynamics", q:"Sweeping a wing back is done chiefly to…",
+      opts:["Increase low-speed lift","Delay the onset of compressibility (raise critical Mach)","Improve short-field takeoff","Reduce fuel burn at idle"], correct:1,
+      why:"Sweep lowers the effective airflow speed across the wing, delaying shockwave formation and letting jets cruise efficiently closer to the speed of sound — at the cost of poorer low-speed behavior." },
+    { cat:"Aerodynamics", q:"Wing dihedral (tips higher than the roots) primarily improves…",
+      opts:["Pitch (longitudinal) stability","Lateral (roll) stability","Directional (yaw) stability","Maximum speed"], correct:1,
+      why:"When a dihedral aircraft is disturbed into a bank and sideslips, the lower wing meets the relative wind at a higher angle of attack and lifts, rolling the aircraft back toward level." },
+    { cat:"Aerodynamics", q:"Adverse yaw causes an aircraft rolling into a turn to initially yaw…",
+      opts:["Toward the inside of the turn","Toward the outside of the turn (opposite the roll)","Straight ahead with no yaw","Nose-down"], correct:1,
+      why:"The rising (outer) wing's down-aileron makes more lift and more drag, yawing the nose the wrong way — toward the outside. Coordinated rudder into the turn cancels it." },
+    { cat:"Aerodynamics", q:"Small vortex generators on a wing's upper surface work by…",
+      opts:["Adding lift directly like tiny wings","Energizing the boundary layer to delay flow separation","Reducing the aircraft's weight","Cooling the wing structure"], correct:1,
+      why:"They stir high-energy air into the sluggish boundary layer, keeping it attached to higher angles of attack — improving control authority and lowering stall speed." },
+
+    /* ---- V-speeds & airspeed markings ---- */
+    { cat:"Performance", q:"VNE, marked by the red radial line on the airspeed indicator, is the…",
+      opts:["Best rate-of-climb speed","Never-exceed speed","Maneuvering speed","Stall speed"], correct:1,
+      why:"VNE is the never-exceed speed; flying beyond it risks structural failure or flutter. Never operate into or past the red line." },
+    { cat:"Performance", q:"Maneuvering speed (VA) is the maximum speed at which…",
+      opts:["The flaps may be extended","Full or abrupt control deflection won't overstress the airframe","The landing gear may be lowered","The aircraft can be safely stalled"], correct:1,
+      why:"At or below VA the wing stalls before aerodynamic loads exceed structural limits. VA decreases as weight decreases, so a light aircraft must slow further in turbulence." },
+    { cat:"Performance", q:"VFE is the maximum speed with…",
+      opts:["Flaps extended","The gear extended","Flaps retracted","One engine inoperative"], correct:0,
+      why:"VFE (top of the white arc) is the flaps-extended speed limit; exceeding it can damage the extended flaps or their mechanism." },
+    { cat:"Performance", q:"VSO is the stalling speed in the…",
+      opts:["Clean (cruise) configuration","Landing configuration (gear and flaps down)","Best-glide configuration","Maximum-weight climb"], correct:1,
+      why:"VSO — the bottom of the white arc — is the power-off stall speed in the landing configuration; VS1 (bottom of the green arc) is the clean-configuration stall speed." },
+    { cat:"Performance", q:"The white arc on the airspeed indicator marks the…",
+      opts:["Never-exceed range","Flap operating range","Caution (high-speed) range","Best-glide range"], correct:1,
+      why:"The white arc spans from VSO up to VFE — the flap operating range. The green arc is normal operations; the yellow arc is a smooth-air-only caution range; the red line is VNE." },
+    { cat:"Performance", q:"The green arc on the airspeed indicator represents the…",
+      opts:["Flap operating range","Normal operating range","Caution range for smooth air only","Never-exceed range"], correct:1,
+      why:"The green arc runs from the clean stall speed (VS1) to the maximum structural cruising speed (VNO) — the normal operating range for everyday flight." },
+    { cat:"Performance", q:"Flying at “best glide speed” after an engine failure gives you…",
+      opts:["The steepest possible descent","The greatest gliding distance over the ground (in still air)","The slowest possible descent rate","The highest airspeed"], correct:1,
+      why:"Best glide is the speed for maximum lift-to-drag ratio, yielding the most distance per foot of altitude lost — buying the most options to reach a landing site." },
+    { cat:"Performance", q:"During a power-off glide, extending the flaps will generally…",
+      opts:["Extend the glide distance","Steepen the descent and shorten the glide","Have no effect on the glide","Increase the glide speed"], correct:1,
+      why:"Flaps add drag and lower the lift-to-drag ratio, steepening the descent path. Handy for losing height to hit a spot — but they reduce how far you can reach." },
+
+    /* ---- Weather (expanded) ---- */
+    { cat:"Weather", q:"A fast-moving cold front is typically associated with…",
+      opts:["Gentle, widespread stratiform cloud and steady rain","Abrupt lifting, cumuliform clouds, showers or thunderstorms and gusty winds","Clear skies and light winds","Persistent fog only"], correct:1,
+      why:"The steep leading edge of cold, dense air forces warm air up sharply, building towering cumulus and storms with a narrow but violent band of weather and shifting, gusty winds." },
+    { cat:"Weather", q:"A warm front usually brings…",
+      opts:["Sudden thunderstorms and hail","Gradual lift with layered stratiform clouds, steady precipitation and lowering visibility over a wide area","Strong clear-air turbulence","Rapidly improving conditions"], correct:1,
+      why:"Warm air overrunning cooler air aloft produces broad, layered cloud and prolonged steady rain or drizzle with poor visibility — a slower, wider weather system than a cold front." },
+    { cat:"Weather", q:"A TAF differs from a METAR in that a TAF is…",
+      opts:["An observation of current conditions","A forecast for the vicinity of an airport over a set period","A chart of winds aloft","A NOTAM about the airport"], correct:1,
+      why:"A METAR reports observed conditions now; a TAF forecasts expected conditions within about 5 SM of an airport, typically over the next 24–30 hours." },
+    { cat:"Weather", q:"A SIGMET is issued to warn of…",
+      opts:["Routine wind and temperature changes","Weather significant to all aircraft — severe turbulence or icing, volcanic ash, dust or sandstorms","Minor turbulence affecting light aircraft only","Airport lighting outages"], correct:1,
+      why:"SIGMETs cover hazards dangerous to all aircraft. AIRMETs cover less severe conditions (moderate turbulence/icing, IFR, mountain obscuration) of more concern to lighter aircraft." },
+    { cat:"Weather", q:"The three ingredients required for a thunderstorm are moisture, a lifting force, and…",
+      opts:["High pressure","An unstable atmosphere (steep lapse rate)","Calm surface winds","A temperature inversion"], correct:1,
+      why:"You need water vapor, an unstable lapse rate so a lifted parcel keeps rising on its own, and a trigger to start the lift (heating, fronts, terrain)." },
+    { cat:"Weather", q:"The most hazardous stage of a thunderstorm's life cycle for aircraft is the…",
+      opts:["Cumulus stage","Mature stage","Dissipating stage","Anvil stage"], correct:1,
+      why:"In the mature stage updrafts and downdrafts coexist violently alongside heavy rain, hail, lightning and severe wind shear — the most dangerous time to be anywhere near the cell." },
+    { cat:"Weather", q:"A microburst encountered on final approach is dangerous because it produces…",
+      opts:["A steady, easily corrected headwind","A rapid shift from performance-boosting headwind to a sinking tailwind","Only light turbulence","Improved climb performance"], correct:1,
+      why:"An aircraft flies into the outflow's headwind (lift increases), then through the downdraft and out the far side as a tailwind — a sudden, potentially unrecoverable loss of performance. Go around early." },
+    { cat:"Weather", q:"Mountain-wave turbulence typically forms…",
+      opts:["Upwind of a ridge in calm air","Downwind of a ridge when strong winds blow across it through a stable layer","Only at night","Directly over flat terrain"], correct:1,
+      why:"Stable air forced over a ridge oscillates in standing waves downwind, with severe turbulence and rotor clouds beneath the wave crests — and powerful up- and down-drafts." },
+    { cat:"Weather", q:"Encountering freezing rain in flight tells you that…",
+      opts:["The air is uniformly below freezing","There is a layer of warmer, above-freezing air above you","You are above all cloud","Icing is impossible"], correct:1,
+      why:"Rain implies it fell as liquid from a warmer layer aloft, then supercooled in the colder air below — so climbing (into the warm layer) may be a safer escape than descending." },
+    { cat:"Weather", q:"Density altitude is pressure altitude corrected for…",
+      opts:["Wind speed","Nonstandard temperature","Magnetic variation","Aircraft weight"], correct:1,
+      why:"High density altitude (hot, high, humid) means thin air: less lift, less thrust, and worse climb. It's the altitude the aircraft “feels” it's performing at, regardless of the field elevation." },
+    { cat:"Weather", q:"The standard (average) temperature lapse rate in the lower atmosphere is about…",
+      opts:["1°C per 1,000 ft","2°C per 1,000 ft","5°C per 1,000 ft","No change with altitude"], correct:1,
+      why:"The standard lapse rate is roughly 2°C (about 3.5°F) per 1,000 ft, or 6.5°C per kilometer — the baseline behind altimetry and performance charts." },
+    { cat:"Weather", q:"Advection fog forms when…",
+      opts:["The ground cools on a clear, calm night","Warm, moist air moves horizontally over a cooler surface","Air is forced up a mountain slope","Rain falls through a dry layer"], correct:1,
+      why:"Advection fog needs wind to carry warm moist air over a cold surface (e.g. sea air over cool land) and, unlike radiation fog, can persist in a breeze." },
+    { cat:"Weather", q:"Radiation fog is most likely…",
+      opts:["On a clear, calm night as the ground cools, often in low-lying areas","During strong gusty winds","In the middle of a sunny afternoon","Only over open ocean"], correct:0,
+      why:"On clear, calm nights the ground radiates heat away, cooling the air just above it to its dewpoint — classic valley fog that usually burns off after sunrise." },
+
+    /* ---- Navigation & instruments (expanded) ---- */
+    { cat:"Navigation", q:"Magnetic variation is the angular difference between…",
+      opts:["True north and magnetic north","Magnetic north and compass north","Your heading and your track","Indicated and true airspeed"], correct:0,
+      why:"Variation is the local angle between true and magnetic north, shown by isogonic lines on charts. It's applied to convert true directions to magnetic ones (and vice versa)." },
+    { cat:"Navigation", q:"Compass “deviation” is error caused by…",
+      opts:["The Earth's magnetic field tilting","Magnetic fields generated by the aircraft itself","Turning too quickly","Flying at high altitude"], correct:1,
+      why:"The aircraft's own electrical systems and ferrous metal deflect the compass. A compass correction card lists the residual deviation on various headings after swinging the compass." },
+    { cat:"Navigation", q:"On an easterly or westerly heading in the Northern Hemisphere, accelerating makes the magnetic compass show an apparent turn toward the…",
+      opts:["South","North","East","West"], correct:1,
+      why:"The memory aid is ANDS: Accelerate–North, Decelerate–South. Acceleration errors show a false turn toward north when speeding up on an east/west heading (and toward south when slowing)." },
+    { cat:"Navigation", q:"GPS determines an aircraft's position by…",
+      opts:["Measuring bearings to ground stations","Measuring range from multiple satellites (needing at least four for a 3-D fix)","Timing radio echoes off the ground","Reading the Earth's magnetic field"], correct:1,
+      why:"Each satellite gives a range sphere; the receiver solves for the intersection. Four satellites resolve latitude, longitude, altitude and the receiver's clock error." },
+    { cat:"Navigation", q:"RNAV (area navigation) lets an aircraft…",
+      opts:["Fly only directly to and from ground navaids","Fly any desired course within the coverage of its nav sources","Navigate only with a magnetic compass","Operate only in Class A airspace"], correct:1,
+      why:"RNAV frees the aircraft from flying station-to-station, allowing direct or arbitrary routes using GPS, DME/DME, or inertial systems — the basis of modern airway and approach design." },
+    { cat:"Navigation", q:"DME (distance measuring equipment) provides…",
+      opts:["Magnetic bearing to a station","Slant-range distance to a station","Ground speed only","Altitude above the station"], correct:1,
+      why:"DME reports slant range — the straight-line distance to the station, which is slightly more than the ground distance, noticeably so directly overhead at altitude." },
+    { cat:"Instruments", q:"The altimeter is essentially a form of…",
+      opts:["Gyroscope","Aneroid barometer","Accelerometer","Magnetometer"], correct:1,
+      why:"Sealed aneroid capsules expand and contract as static (ambient) pressure changes with altitude, driving the needles. Setting the Kollsman window calibrates it to the local pressure." },
+    { cat:"Instruments", q:"The vertical speed indicator (VSI) works by measuring the…",
+      opts:["Rate of change of static pressure","Ram (pitot) pressure","Gyroscopic precession","Outside air temperature"], correct:0,
+      why:"The VSI compares instantaneous static pressure with a calibrated leak, so it reads the rate at which static pressure is changing — i.e. climb or descent rate, with a slight lag." },
+    { cat:"Instruments", q:"If you fly toward lower pressure without updating the altimeter setting, your altimeter will read…",
+      opts:["Lower than your true altitude","Higher than your true altitude","Exactly your true altitude","Zero"], correct:1,
+      why:"“High to low, look out below.” Flying into lower pressure (or colder air) leaves the altimeter over-reading — you're actually lower than it indicates, a real terrain hazard." },
+    { cat:"Instruments", q:"Setting the altimeter to 29.92 inHg (standard) makes it display…",
+      opts:["True altitude above sea level","Pressure altitude (used for flight levels)","Height above the ground","Density altitude"], correct:1,
+      why:"Above the transition altitude (18,000 ft in the U.S.) everyone sets 29.92 so all aircraft reference the same datum — pressure altitude — read as flight levels (e.g. FL350)." },
+    { cat:"Instruments", q:"The ball of the turn coordinator's inclinometer tells you…",
+      opts:["The rate of turn","Whether the turn is coordinated (slipping or skidding)","The bank angle in degrees","The pitch attitude"], correct:1,
+      why:"Ball centered = coordinated. Ball to the inside = slip (too little rudder); ball to the outside = skid (too much rudder). “Step on the ball” to center it." },
+
+    /* ---- Systems (expanded) ---- */
+    { cat:"Systems", q:"A normally aspirated (non-turbocharged) piston engine loses power with altitude because…",
+      opts:["The propeller spins slower","The air density, and thus available oxygen, decreases","The oil gets too cold","The magnetos weaken"], correct:1,
+      why:"Less dense air means less oxygen per intake stroke, so the engine makes less power the higher it climbs — one reason service ceilings exist for piston aircraft." },
+    { cat:"Systems", q:"A turbocharger benefits an aircraft engine by…",
+      opts:["Cooling the exhaust","Compressing intake air to maintain manifold pressure at altitude","Reducing propeller drag","Replacing the magnetos"], correct:1,
+      why:"Driven by exhaust gas, the turbocharger packs more air into the cylinders, letting the engine hold near–sea-level power far higher — restoring climb and cruise performance up high." },
+    { cat:"Systems", q:"Carburetor icing is most insidious because it can occur…",
+      opts:["Only at full power in freezing conditions","At reduced power in moist air even when the outside temperature is well above freezing","Only above 10,000 ft","Only during engine start"], correct:1,
+      why:"Fuel vaporization and the pressure drop in the venturi can chill the carburetor below freezing on a mild, humid day — often at low power on descent. Carb heat is the cure and the check." },
+    { cat:"Systems", q:"Detonation in a piston engine is…",
+      opts:["The normal, smooth burning of the fuel/air charge","An uncontrolled explosion of the charge causing damaging pressures and temperatures","The sound of the starter engaging","A deliberate lean-of-peak technique"], correct:1,
+      why:"Instead of a controlled flame front, the mixture explodes — spiking cylinder pressure and temperature. Causes include too-low-octane fuel, excessive heat, or over-leaning at high power." },
+    { cat:"Systems", q:"Aircraft piston engines use magnetos for ignition mainly because they…",
+      opts:["Are lighter than spark plugs","Produce spark independently of the aircraft's electrical system","Improve fuel economy at idle","Eliminate the need for oil"], correct:1,
+      why:"Engine-driven magnetos generate their own spark, so the engine keeps running even with a total electrical failure — and dual magnetos add redundancy and a small power benefit." },
+    { cat:"Systems", q:"A constant-speed propeller holds a selected RPM by…",
+      opts:["Changing engine displacement","Automatically varying the blade pitch via a governor","Adjusting the mixture","Feathering on every power change"], correct:1,
+      why:"The governor increases blade pitch (bigger “bite”) as load or airspeed changes to keep RPM constant — like a car's automatic transmission finding the right gear for the conditions." },
+    { cat:"Systems", q:"Airliners typically maintain a cabin pressure equivalent to an altitude of no more than about…",
+      opts:["Sea level","8,000 feet","20,000 feet","The actual cruise altitude"], correct:1,
+      why:"Cruising near 35,000 ft, the cabin is pressurized to roughly 6,000–8,000 ft so occupants stay comfortable and adequately oxygenated without needing supplemental oxygen." },
+    { cat:"Systems", q:"The pitot-static system supplies the…",
+      opts:["Attitude and heading indicators","Airspeed indicator, altimeter and vertical speed indicator","Fuel and oil gauges","Engine tachometer"], correct:1,
+      why:"Ram air (pitot) plus ambient (static) pressure drive the three pressure instruments. That's why a blocked port corrupts airspeed, altitude and vertical speed together." },
+    { cat:"Systems", q:"Hot high-pressure “bleed air” tapped from the engine compressor is commonly used for…",
+      opts:["Charging the battery","Cabin pressurization and anti-ice","Powering the landing lights","Driving the propeller"], correct:1,
+      why:"Compressor bleed air feeds pressurization/air-conditioning packs and heats leading edges and engine inlets for ice protection — one reason engine bleed settings matter in icing." },
+
+    /* ---- Airspace, regs & operations (expanded) ---- */
+    { cat:"Airspace / Regs", q:"In the U.S., Class A airspace extends from…",
+      opts:["The surface to 1,200 ft AGL","18,000 ft MSL up to FL600, IFR only","10,000 ft MSL to 18,000 ft MSL","Only over oceanic routes"], correct:1,
+      why:"From 18,000 ft MSL to FL600 everything is IFR, under ATC clearance, with altimeters set to 29.92. VFR flight is not permitted in Class A." },
+    { cat:"Airspace / Regs", q:"Class C airspace is generally established around airports that have…",
+      opts:["No control tower","An operating control tower, radar approach control and moderate traffic","Only military operations","Grass runways"], correct:1,
+      why:"Class C requires two-way radio communication and a Mode C transponder. It's drawn as a smaller two-tiered cake around busy-but-not-Class-B airports." },
+    { cat:"Airspace / Regs", q:"Class G airspace is best described as…",
+      opts:["The busiest airspace in the system","Uncontrolled airspace where ATC exercises no separation authority","Reserved for airliners","Always above 18,000 ft"], correct:1,
+      why:"In Class G (uncontrolled) airspace ATC provides no separation service; pilots are responsible for see-and-avoid, and VFR weather minimums are lower, especially below 1,200 ft AGL." },
+    { cat:"Airspace / Regs", q:"A Special VFR clearance allows a pilot to…",
+      opts:["Fly IFR without an instrument rating","Operate VFR in controlled airspace below basic VFR minimums (1 SM, clear of clouds) with ATC approval","Ignore the transponder requirement","Land at any closed airport"], correct:1,
+      why:"On request and if traffic permits, ATC may issue Special VFR down to 1 statute mile visibility and clear of clouds within surface-area controlled airspace — a tool to be used with caution." },
+    { cat:"Airspace / Regs", q:"In the U.S., a Mode C transponder (altitude reporting) is generally required…",
+      opts:["Only in Class G airspace","In and above Class B and C, and above 10,000 ft MSL (with limited exceptions)","Only at night","Never for light aircraft"], correct:1,
+      why:"Mode C (now paired with ADS-B Out) is required within Class B/C, above the Class B “Mode C veil,” and above 10,000 ft MSL except when at or below 2,500 ft AGL." },
+    { cat:"Airspace / Regs", q:"Among aircraft in flight, absolute right of way belongs to…",
+      opts:["The fastest aircraft","An aircraft in distress","The heaviest aircraft","The aircraft at the highest altitude"], correct:1,
+      why:"An aircraft in distress has right of way over all other traffic — everyone else gives way. Otherwise category rules apply (e.g. balloons over gliders over airplanes)." },
+    { cat:"Operations", q:"When one aircraft overtakes another in flight, the…",
+      opts:["Overtaking aircraft has right of way and passes on the left","Aircraft being overtaken has right of way; the overtaking aircraft alters course to the right","Faster aircraft always has right of way","Two must descend together"], correct:1,
+      why:"The aircraft being passed keeps the right of way; the overtaking aircraft must give way and move to the right to pass — mirroring the rules of the road." },
+
+    /* ---- Human factors (expanded) ---- */
+    { cat:"Human Factors", q:"Hyperventilation produces symptoms that mimic hypoxia. The correct response is to…",
+      opts:["Climb higher for fresh air","Consciously slow the breathing rate (and talk aloud or breathe into a bag)","Breathe faster and deeper","Ignore it — it is harmless"], correct:1,
+      why:"Over-breathing flushes out CO₂, causing dizziness and tingling. Slowing the rate restores balance. Because the symptoms overlap with hypoxia, at altitude assume hypoxia first — use oxygen." },
+    { cat:"Human Factors", q:"Carbon monoxide poisoning in the cockpit most often comes from…",
+      opts:["High-altitude flight","Exhaust gases leaking into a cabin heater","Bright sunlight","Dehydration"], correct:1,
+      why:"CO is odorless and binds hemoglobin far more readily than oxygen. A cracked exhaust shroud feeding the cabin heat is the classic source — headache and drowsiness are warning signs; use fresh air and land." },
+    { cat:"Human Factors", q:"The somatogravic illusion — powerful on a dark night or over water — makes rapid forward acceleration feel like…",
+      opts:["A nose-down pitch","A nose-up pitch (tempting a dangerous nose-down correction)","A roll to the left","No change at all"], correct:1,
+      why:"Acceleration pushes you back into the seat, which the inner ear reads as pitching up. Pilots may push the nose down to “correct” — straight toward the ground. Trust the attitude indicator." },
+    { cat:"Human Factors", q:"The “black-hole” approach illusion, over dark featureless terrain at night, tends to make pilots…",
+      opts:["Fly a dangerously low approach","Fly too high and go around","See the runway more clearly","Land long every time"], correct:0,
+      why:"With no visual cues between the aircraft and a distant runway, pilots perceive themselves as too high and descend too soon — flying an unsafely low, flat approach short of the runway." },
+    { cat:"Decision Making", q:"“Scud running” — pressing on beneath a lowering ceiling in marginal visibility — is dangerous mainly because it invites…",
+      opts:["Carburetor icing","Controlled flight into terrain and obstacles","Excess fuel burn","Radio interference"], correct:1,
+      why:"Squeezing between a dropping cloud base and rising terrain leaves no margin for towers, wires or hills that appear with no time to react. It's a leading cause of CFIT — divert or climb to VFR-on-top isn't an option without a rating." },
+
+    /* ================= EXPANSION TO 200 ================= */
+
+    /* ---- Flight mechanics & aerodynamics ---- */
+    { cat:"Flight Mechanics", q:"A spin differs from a simple stall in that a spin also involves…",
+      opts:["Both wings producing equal lift","Autorotation — one wing more deeply stalled than the other","An engine failure","Excess airspeed"], correct:1,
+      why:"In a spin the aircraft is stalled AND yawing, so one wing is more stalled (less lift, more drag) than the other, driving the self-sustaining autorotation." },
+    { cat:"Flight Mechanics", q:"In the PARE spin-recovery mnemonic, the “R” directs you to apply…",
+      opts:["Rudder full opposite to the direction of rotation","Rapid aileron into the spin","Rich mixture","Reduced flaps"], correct:0,
+      why:"PARE: Power idle, Ailerons neutral, Rudder full opposite the spin, then Elevator briskly forward to break the stall. Rudder stops the rotation before the elevator reduces angle of attack." },
+    { cat:"Flight Mechanics", q:"A “secondary stall” typically occurs when a pilot…",
+      opts:["Recovers from the first stall too abruptly, exceeding the critical angle again","Adds full power too slowly","Uses too much rudder on the ground","Lowers the flaps in cruise"], correct:0,
+      why:"Pulling back too soon or too hard during recovery re-exceeds the critical angle of attack before the wing is truly flying, producing a second, often more aggressive stall." },
+    { cat:"Flight Mechanics", q:"Engine torque reaction tends to roll a typical single-engine propeller aircraft…",
+      opts:["To the right","To the left (opposite the propeller's rotation)","Straight ahead","Nose-up"], correct:1,
+      why:"By Newton's third law, a propeller turning clockwise (as seen from the cockpit) reacts by rolling the airframe left — one of the left-turning tendencies, strongest at high power and low speed." },
+    { cat:"Flight Mechanics", q:"An accelerated stall happens because…",
+      opts:["The engine is over-boosted","Increased load factor raises the stall speed, so the wing stalls at a higher airspeed","The flaps are retracted","The air is too cold"], correct:1,
+      why:"Stall speed rises with the square root of load factor, so hard maneuvering (steep turns, abrupt pull-ups) can stall the wing well above the 1-G stall speed." },
+    { cat:"Flight Mechanics", q:"Loading an aircraft toward its FORWARD CG limit tends to…",
+      opts:["Reduce stability and lighten the controls","Increase stability but raise stall speed and heavy up the elevator/flare","Have no effect on handling","Make the aircraft tail-heavy"], correct:1,
+      why:"A forward CG increases longitudinal stability but demands more tail download — raising stall speed, heavying the pitch controls, and potentially making the landing flare difficult." },
+    { cat:"Flight Mechanics", q:"For a given wing, the lift produced is proportional to the…",
+      opts:["Airspeed","Square of the airspeed","Cube of the airspeed","Square root of the airspeed"], correct:1,
+      why:"Lift rises with the square of velocity (L ∝ V²), which is why small speed changes have a large effect on lift and on stall margin." },
+    { cat:"Flight Mechanics", q:"The angle of incidence is the fixed angle between the wing chord line and the…",
+      opts:["Relative wind","Longitudinal axis of the fuselage","Horizon","Flight path"], correct:1,
+      why:"Angle of incidence is a rigging angle built into the airframe. Angle of attack, by contrast, is the changing angle between the chord and the relative wind." },
+    { cat:"Flight Mechanics", q:"Leading-edge slats or slots raise the wing's maximum lift by…",
+      opts:["Reducing the wing area","Energizing airflow and letting the wing reach a higher angle of attack before stalling","Cooling the wing","Increasing the never-exceed speed"], correct:1,
+      why:"They re-energize the boundary layer and effectively increase camber, delaying separation to a higher angle of attack — lowering stall speed for takeoff and landing." },
+    { cat:"Flight Mechanics", q:"Dutch roll is best described as a coupled…",
+      opts:["Pitch-and-power oscillation","Yaw-and-roll oscillation","Nose-up trim runaway","Wingtip vortex"], correct:1,
+      why:"Dutch roll is a lateral-directional wobble in which yaw and roll feed each other — common on swept-wing jets and damped by a yaw damper." },
+    { cat:"Flight Mechanics", q:"In a steep turn, the “overbanking tendency” arises because…",
+      opts:["The inside wing flies faster","The outside wing travels faster and makes more lift, steepening the bank","The rudder loses effect","The elevator stalls"], correct:1,
+      why:"The higher-speed outer wing generates more lift, tending to roll the aircraft into a steeper bank — so a steep turn often needs a little opposite aileron to hold bank." },
+    { cat:"Flight Mechanics", q:"Higher wing loading (more weight per unit of wing area) generally gives an aircraft…",
+      opts:["A rougher ride in turbulence","A smoother ride in turbulence","A lower stall speed","Better short-field performance"], correct:1,
+      why:"A heavily wing-loaded aircraft responds less to gusts, riding turbulence more smoothly — one reason large jets feel steadier than light trainers in bumps." },
+
+    /* ---- Multi-engine ---- */
+    { cat:"Multi-Engine", q:"On a conventional twin (both propellers turning clockwise), the “critical engine” is the…",
+      opts:["Left engine","Right engine","Either — they are identical","Whichever is at higher power"], correct:0,
+      why:"P-factor puts each propeller's effective thrust to the right of center. Losing the LEFT engine leaves the right engine's thrust line farthest from the CG — the most adverse yaw — making the left the critical engine." },
+    { cat:"Multi-Engine", q:"VMC, marked by a red radial line on a twin's airspeed indicator, is the…",
+      opts:["Maximum cruise speed","Minimum speed to maintain directional control with the critical engine failed","Best glide speed","Maneuvering speed"], correct:1,
+      why:"Below VMC (minimum control speed) the rudder can no longer counter the asymmetric thrust of a failed engine, and the aircraft will yaw and roll toward the dead engine." },
+    { cat:"Multi-Engine", q:"VYSE — the blue radial line on a twin — is the speed for…",
+      opts:["Best single-engine rate of climb","Best glide with both engines out","Maximum structural cruising","Flap extension"], correct:0,
+      why:"“Blue line” is the best single-engine rate-of-climb speed — the target after an engine failure to preserve the most climb performance on the remaining engine." },
+    { cat:"Multi-Engine", q:"Feathering the propeller of a failed engine is done to…",
+      opts:["Restart the engine","Minimize drag by turning the blades edge-on to the airflow","Increase lift","Cool the engine faster"], correct:1,
+      why:"A windmilling propeller creates enormous drag. Feathering rotates the blades parallel to the airflow, drastically cutting drag so the aircraft can still climb or hold altitude." },
+
+    /* ---- Performance & airspeed ---- */
+    { cat:"Performance", q:"VS1, the bottom of the green arc, is the stalling speed in the…",
+      opts:["Landing configuration","Clean (cruise) configuration","Best-glide configuration","Maximum-bank turn"], correct:1,
+      why:"VS1 is the power-off clean-configuration stall speed. VSO (bottom of the white arc) is the stall speed with gear and flaps extended." },
+    { cat:"Performance", q:"The top of the green arc (VNO) marks the…",
+      opts:["Never-exceed speed","Maximum structural cruising speed — exceed it only in smooth air","Stall speed","Flap limit speed"], correct:1,
+      why:"Above VNO you're in the yellow caution arc, safe only in smooth air; the red line (VNE) is the absolute limit in any conditions." },
+    { cat:"Performance", q:"The yellow arc on the airspeed indicator is a caution range to be used only…",
+      opts:["At night","In smooth air","Below 1,000 ft","With flaps down"], correct:1,
+      why:"The yellow arc (between VNO and VNE) is safe only in smooth air; a sharp gust or abrupt input there could overstress the airframe." },
+    { cat:"Performance", q:"An airplane's service ceiling is defined as the altitude where the maximum rate of climb drops to about…",
+      opts:["0 ft/min","100 ft/min","500 ft/min","1,000 ft/min"], correct:1,
+      why:"Service ceiling is where the best climb rate falls to 100 fpm; the absolute ceiling (0 fpm) is higher but of little practical use." },
+    { cat:"Performance", q:"A steady headwind on takeoff and landing…",
+      opts:["Increases the ground roll required","Decreases the ground roll required","Has no effect","Only matters at night"], correct:1,
+      why:"A headwind means the aircraft reaches flying airspeed at a lower groundspeed, shortening the takeoff and landing roll. A tailwind does the opposite and is best avoided." },
+    { cat:"Performance", q:"An aircraft's rate of climb depends primarily on its…",
+      opts:["Excess power available over power required","Total fuel on board","Wing color","Cabin altitude"], correct:0,
+      why:"Climb performance comes from surplus power (or thrust). As density altitude rises and power available falls toward power required, climb rate shrinks toward zero at the ceiling." },
+
+    /* ---- Weather (further) ---- */
+    { cat:"Weather", q:"An occluded front forms when…",
+      opts:["Two warm fronts merge","A faster cold front overtakes a warm front, lifting the warm air off the surface","A front stops moving","Warm air undercuts cold air"], correct:1,
+      why:"The cold front catches the slower warm front, wedging the warm air aloft. Occlusions bring a mix of frontal weather and are common in mature low-pressure systems." },
+    { cat:"Weather", q:"A stationary front is one where…",
+      opts:["The front is moving very fast","Neither air mass is displacing the other, so the boundary stalls","Only clear skies occur","It exists only over oceans"], correct:1,
+      why:"With opposing air masses at a standoff, the boundary barely moves and can bring prolonged clouds and precipitation over the same area for days." },
+    { cat:"Weather", q:"Clear (glaze) ice, the most dangerous airframe icing, forms from…",
+      opts:["Tiny droplets freezing instantly","Large supercooled droplets spreading and freezing slowly into a smooth, heavy glaze","Snow sticking to the wing","Frost on the ground"], correct:1,
+      why:"Large supercooled drops flow back before freezing, forming dense, hard-to-shed clear ice. Small droplets freeze on contact as lighter, rougher rime ice." },
+    { cat:"Weather", q:"Clear-air turbulence (CAT) is most associated with…",
+      opts:["Low-level fog","The jet stream near the tropopause","Calm high-pressure areas","Ground-effect regions"], correct:1,
+      why:"Strong wind shears at the edges of the jet stream generate turbulence in cloudless air — hence “clear-air,” with no visual warning, most common near the tropopause." },
+    { cat:"Weather", q:"Smooth, lens-shaped lenticular clouds parked over or downwind of mountains are a sign of…",
+      opts:["Fair, stable weather with no hazard","Mountain-wave activity and possible severe turbulence","An approaching warm front","Ground fog"], correct:1,
+      why:"Lenticular (and rotor) clouds mark standing mountain waves; the air within can be smooth, but the rotors beneath and the wave itself can hide violent turbulence." },
+    { cat:"Weather", q:"The cloud type synonymous with thunderstorms is the…",
+      opts:["Cirrus","Cumulonimbus","Stratus","Altocumulus"], correct:1,
+      why:"The towering cumulonimbus contains the updrafts, hail, lightning and turbulence of a thunderstorm — to be avoided by a wide margin, often 20 nm from severe cells." },
+    { cat:"Weather", q:"A squall line is…",
+      opts:["A gentle warm-front cloud deck","A often non-frontal band of intense thunderstorms, frequently the most violent weather","A type of fog","A high-altitude ice cloud"], correct:1,
+      why:"Squall lines are lines of storms (often ahead of a cold front) that can be too solid to circumnavigate and contain the worst turbulence, hail and shear — never to be penetrated." },
+    { cat:"Weather", q:"Virga — precipitation that evaporates before reaching the ground — is a warning sign of…",
+      opts:["Improving weather","Possible strong downdrafts and dry microbursts","Icing on the ground","A stationary front"], correct:1,
+      why:"As the falling rain evaporates it cools the air, which can plunge as a powerful downdraft — a classic dry-microburst cue over desert or high-based storms." },
+    { cat:"Weather", q:"A temperature inversion (warmer air above cooler) typically produces…",
+      opts:["Turbulent, unstable air","Stable, smooth air that traps haze and can hide poor visibility below","Rapid cloud growth","Strong updrafts"], correct:1,
+      why:"Inversions cap vertical motion, giving smooth air but trapping moisture, smoke and pollutants beneath — often with fog or low visibility under the inversion layer." },
+    { cat:"Weather", q:"A sea breeze occurs when…",
+      opts:["Cool air flows from the sea toward warmer land during the day","Warm air flows from land to sea during the day","Winds stop entirely at the coast","The tide changes"], correct:0,
+      why:"By day the land heats faster than the water, so cooler, denser marine air flows inland. At night the pattern reverses into a land breeze." },
+    { cat:"Weather", q:"In a METAR, the group “24015KT” means the wind is from…",
+      opts:["240° at 15 knots","150° at 24 knots","24° at 15 knots","240° at 1,500 ft"], correct:0,
+      why:"METAR winds read as direction-then-speed: 240° true at 15 knots. A “G” group (e.g., 24015G25KT) would add gusts to 25 knots." },
+    { cat:"Weather", q:"A METAR sky condition of “OVC” indicates cloud coverage of…",
+      opts:["1–2 eighths (few)","3–4 eighths (scattered)","5–7 eighths (broken)","8 eighths — overcast"], correct:3,
+      why:"Coverage runs FEW, SCT, BKN, OVC. Overcast is a full 8/8 sky cover; BKN or OVC layers form a ceiling." },
+    { cat:"Weather", q:"Upslope fog forms when…",
+      opts:["Cold air sinks into a valley overnight","Moist, stable air is forced up rising terrain and cools to saturation","A cold front passes","Rain falls through dry air"], correct:1,
+      why:"As stable, humid air climbs a slope it cools adiabatically to its dewpoint, forming fog along the rising ground — and, unlike radiation fog, it needs wind to sustain the upslope flow." },
+
+    /* ---- Navigation & instruments (further) ---- */
+    { cat:"Navigation", q:"The line on a chart connecting points of zero magnetic variation is the…",
+      opts:["Isogonic line","Agonic line","Isobar","Great circle"], correct:1,
+      why:"An agonic line joins points where magnetic and true north align (zero variation); isogonic lines connect points of equal non-zero variation." },
+    { cat:"Navigation", q:"One minute of latitude equals approximately…",
+      opts:["One statute mile","One nautical mile","One kilometer","Ten nautical miles"], correct:1,
+      why:"By definition one minute of arc of latitude is one nautical mile (about 1.15 statute miles) — handy for quick distance estimates on a chart." },
+    { cat:"Instruments", q:"A standard-rate turn, which the turn coordinator is calibrated to, is…",
+      opts:["1° per second","3° per second (a 2-minute 360° turn)","6° per second","10° per second"], correct:1,
+      why:"A standard-rate turn is 3° per second, completing 360° in two minutes — the basis of timed turns and holding-pattern entries in instrument flying." },
+    { cat:"Navigation", q:"The needle of an ADF (automatic direction finder) points…",
+      opts:["To magnetic north","Directly toward the tuned NDB station","Along the runway centerline","Toward the nearest airport"], correct:1,
+      why:"The ADF needle always points at the non-directional beacon; its angle from the nose is the relative bearing, which combined with heading gives the magnetic bearing to the station." },
+    { cat:"Instruments", q:"Which airspeed will normally be HIGHER than indicated airspeed at altitude?",
+      opts:["Calibrated airspeed","True airspeed","Stall speed in IAS","None — they are equal"], correct:1,
+      why:"True airspeed exceeds indicated airspeed as air thins with altitude. Calibrated airspeed is just IAS corrected for instrument/position error and stays close to IAS." },
+    { cat:"Instruments", q:"A heading indicator (directional gyro) must be reset to the magnetic compass periodically because of…",
+      opts:["Magnetic dip","Gyroscopic precession causing gradual drift","Static pressure error","Temperature changes"], correct:1,
+      why:"Friction and precession make the DG wander over time, so pilots realign it with the magnetic compass (in straight, unaccelerated flight) roughly every 15 minutes." },
+    { cat:"Airports", q:"On a VASI/PAPI, seeing “red over white” (or two red, two white on a PAPI) tells you that you are…",
+      opts:["Too high","On the correct glidepath","Too low","Off the runway centerline"], correct:1,
+      why:"“Red over white, you're all right.” All white means too high; all red means too low — “red over red, you're dead,” dangerously below the glidepath." },
+    { cat:"Airports", q:"A runway numbered “27” is aligned approximately to a magnetic heading of…",
+      opts:["27°","270°","207°","027°"], correct:1,
+      why:"Runway numbers are the magnetic heading rounded to the nearest 10° with the last zero dropped, so “27” points about 270° (west). The reciprocal end would be “09.”" },
+    { cat:"Navigation", q:"Turning to roll out on a northerly heading in the Northern Hemisphere, the magnetic compass tends to…",
+      opts:["Overshoot the turn","Lag/undershoot, so you roll out early","Read exactly correct","Spin continuously"], correct:1,
+      why:"The memory aid is UNOS: Undershoot North, Overshoot South. Near north the compass lags, so you must roll out before reaching the desired heading." },
+    { cat:"Navigation", q:"The angle a pilot holds the aircraft's nose into the wind to track a straight course is the…",
+      opts:["Angle of attack","Wind correction (crab) angle","Angle of incidence","Bank angle"], correct:1,
+      why:"The wind correction angle offsets drift so the aircraft's track over the ground stays on course even though its heading points partly into the wind." },
+    { cat:"Navigation", q:"At a groundspeed of 120 knots, an aircraft covers about…",
+      opts:["1 nautical mile per minute","2 nautical miles per minute","3 nautical miles per minute","0.5 nautical miles per minute"], correct:1,
+      why:"120 kt ÷ 60 = 2 nm per minute — a quick mental rate for estimating time and distance in flight planning." },
+    { cat:"IFR", q:"Flying at or above the published MEA (minimum en route altitude) on an airway guarantees…",
+      opts:["Radar coverage everywhere","Obstacle clearance and acceptable navigation-signal reception","The smoothest air","No other traffic"], correct:1,
+      why:"The MEA assures both terrain/obstacle clearance and usable navaid reception along that airway segment; the MOCA assures obstacle clearance but signal only within 22 nm of the station." },
+
+    /* ---- Systems (further) ---- */
+    { cat:"Systems", q:"The four strokes of a piston aircraft engine's cycle, in order, are…",
+      opts:["Compression, intake, power, exhaust","Intake, compression, power, exhaust","Power, exhaust, intake, compression","Intake, power, compression, exhaust"], correct:1,
+      why:"Intake, compression, power (combustion), exhaust — the Otto cycle. The single power stroke per two crankshaft revolutions is why smooth running needs multiple cylinders." },
+    { cat:"Systems", q:"As a piston aircraft climbs, the pilot leans the mixture because…",
+      opts:["The engine needs more fuel up high","Thinner air means less oxygen, so less fuel is needed to keep the correct fuel/air ratio","It cools the cabin","It increases the octane"], correct:1,
+      why:"Without leaning, the mixture grows too rich at altitude, wasting fuel, fouling plugs and losing power. Leaning restores the proper ratio for the thinner air." },
+    { cat:"Systems", q:"In the United States, 100LL aviation gasoline is dyed…",
+      opts:["Blue","Green","Red","Clear/straw"], correct:0,
+      why:"100LL (low-lead avgas) is dyed blue for identification. Jet A turbine fuel is a clear-to-straw kerosene — mis-fuelling a piston engine with jet fuel is catastrophic." },
+    { cat:"Systems", q:"In many light aircraft the attitude and heading gyros are driven by…",
+      opts:["The pitot-static system","An engine-driven vacuum (suction) system","The magnetic compass","Battery power only"], correct:1,
+      why:"A vacuum pump spins the gyros with airflow. A vacuum failure quietly kills the attitude and heading indicators — a notorious trap in instrument conditions." },
+    { cat:"Systems", q:"Pitot heat is used to…",
+      opts:["Warm the cabin","Prevent ice from blocking the pitot tube and corrupting the airspeed indicator","De-ice the wings","Heat the fuel"], correct:1,
+      why:"A blocked pitot tube makes the airspeed indicator misbehave (even acting like an altimeter). Pitot heat keeps the ram-air inlet clear in visible moisture and icing." },
+    { cat:"Systems", q:"In flight, the aircraft's electrical loads are normally powered by the…",
+      opts:["Battery alone","Alternator/generator, with the battery as backup and for starting","Magnetos","Static wicks"], correct:1,
+      why:"The engine-driven alternator supplies the buses and recharges the battery in flight; the battery mainly starts the engine and provides a limited reserve if the alternator fails." },
+    { cat:"Systems", q:"The sections of a turbine (jet) engine, front to back, are inlet, compressor, then…",
+      opts:["Turbine, combustion, exhaust","Combustion, turbine, exhaust","Exhaust, combustion, turbine","Combustion, exhaust, turbine"], correct:1,
+      why:"Air is compressed, fuel burns in the combustion chamber, the hot gas spins the turbine (which drives the compressor), and the remainder exits the exhaust as thrust." },
+    { cat:"Systems", q:"Pneumatic “de-ice” boots differ from “anti-ice” systems in that boots…",
+      opts:["Prevent ice from ever forming","Inflate to crack off ice that has already accumulated","Are used only on the ground","Heat the entire wing continuously"], correct:1,
+      why:"De-icing (boots) removes ice after it builds up by flexing the leading edge; anti-icing (heated surfaces, weeping wings) prevents ice from forming in the first place." },
+    { cat:"Systems", q:"Exhaust gas temperature (EGT) is monitored primarily to…",
+      opts:["Set the landing gear","Lean the fuel/air mixture accurately (find peak EGT)","Time the magnetos","Measure cabin altitude"], correct:1,
+      why:"Peak EGT marks the chemically correct mixture; pilots lean to a set number of degrees rich or lean of peak for the desired balance of power, economy and engine temperature." },
+
+    /* ---- Airspace, regs & operations (further) ---- */
+    { cat:"Airspace / Regs", q:"Class D airspace generally surrounds…",
+      opts:["Uncontrolled fields","Airports with an operating control tower (but without radar approach services)","Only military bases","Oceanic routes"], correct:1,
+      why:"Class D wraps a towered airport, typically to about 2,500 ft AGL. Two-way radio communication with the tower is required before entering." },
+    { cat:"Airspace / Regs", q:"Over a congested area, the minimum safe VFR altitude is…",
+      opts:["500 ft above the ground","1,000 ft above the highest obstacle within a 2,000-ft horizontal radius","200 ft above the tallest building","There is no minimum"], correct:1,
+      why:"Over congested areas: at least 1,000 ft above the highest obstacle within 2,000 ft horizontally. Over open areas the minimum is 500 ft AGL (and clear of people/vessels/structures)." },
+    { cat:"Operations", q:"An aircraft on final approach to land has right of way over…",
+      opts:["No one","Other aircraft in flight or operating on the surface","Only slower aircraft","Only IFR traffic"], correct:1,
+      why:"Landing aircraft (and those on final) have priority over aircraft in flight or on the ground — though a pilot may not use that priority to force another off a runway recklessly." },
+    { cat:"Operations", q:"Aircraft position and anti-collision lights are required to be on…",
+      opts:["At all times","From sunset to sunrise","Only above 10,000 ft","Only in controlled airspace"], correct:1,
+      why:"Position (navigation) lights are required from sunset to sunrise; anti-collision lights (beacon/strobes) are used whenever the engine is running, day or night, unless safety dictates otherwise." },
+    { cat:"Physiology", q:"Under U.S. rules, the flight crew must use supplemental oxygen when the cabin pressure altitude stays above 12,500 ft MSL for more than…",
+      opts:["5 minutes","30 minutes","2 hours","No time limit"], correct:1,
+      why:"Above 12,500 ft up to 14,000 ft, required minimum flight crew must use oxygen for any portion beyond 30 minutes; above 14,000 ft they must use it the entire time." },
+    { cat:"Airspace / Regs", q:"The mnemonic ARROW refers to documents that must be aboard the aircraft — Airworthiness, Registration, Radio (if required), Operating limitations, and…",
+      opts:["Weather briefing","Weight and balance data","Wind charts","Warranty"], correct:1,
+      why:"ARROW: Airworthiness certificate, Registration, Radio station license (for international ops), Operating limitations (POH/placards), and Weight & balance data." },
+    { cat:"Airspace / Regs", q:"In the U.S., a VFR aircraft not in contact with ATC normally squawks transponder code…",
+      opts:["7500","1200","7700","0000"], correct:1,
+      why:"1200 is the standard VFR squawk. The emergency/lost-comm codes 7500 (hijack), 7600 (radio failure) and 7700 (emergency) are reserved for those situations." },
+    { cat:"Operations", q:"Unless otherwise charted, the standard traffic pattern uses left turns and a pattern altitude of about…",
+      opts:["500 ft AGL","1,000 ft AGL","2,500 ft AGL","5,000 ft MSL"], correct:1,
+      why:"Left traffic is the default; right traffic is used only where noted. Pattern altitude is typically 1,000 ft AGL for light aircraft (higher for larger/turbine types)." },
+    { cat:"Emergencies", q:"A modern Emergency Locator Transmitter (ELT) is designed to broadcast a distress signal on…",
+      opts:["121.5 MHz only","406 MHz (with 121.5 for homing)","Any VHF frequency","The transponder"], correct:1,
+      why:"406 MHz ELTs transmit a coded, satellite-detected distress signal (often with GPS position) and usually a 121.5 MHz tone for local homing — vastly faster to locate than the old 121.5-only units." },
+    { cat:"Operations", q:"A TFR (Temporary Flight Restriction) is issued to…",
+      opts:["Permanently close an airport","Restrict flight in a defined area for events such as VIP movements, disasters or hazards","Assign cruising altitudes","Set fuel prices"], correct:1,
+      why:"TFRs temporarily bar or limit flight around wildfires, disaster sites, major sporting events, or presidential movements. Busting one can bring interception and enforcement." },
+
+    /* ---- IFR / ATC ---- */
+    { cat:"IFR", q:"To operate under Instrument Flight Rules in controlled airspace, a pilot must first…",
+      opts:["File a flight plan only","Obtain an ATC clearance","Reach 10,000 ft","Squawk 1200"], correct:1,
+      why:"IFR flight in controlled airspace requires an ATC clearance (and a filed flight plan); ATC then provides separation from other IFR traffic." },
+    { cat:"IFR", q:"In a standard holding pattern, the turns are…",
+      opts:["Left turns","Right turns","Alternating","Straight legs only"], correct:1,
+      why:"A standard hold uses right-hand turns with (typically) one-minute legs below 14,000 ft. Non-standard (left-turn) holds are charted or assigned when needed." },
+    { cat:"ATC", q:"ATIS — the Automatic Terminal Information Service — provides pilots with…",
+      opts:["IFR clearances","A recorded broadcast of current airport weather and operational information","Radar vectors","Fuel prices"], correct:1,
+      why:"ATIS continuously broadcasts the latest weather, active runway, approaches in use and NOTAMs, letting pilots get the picture before calling a busy controller." },
+    { cat:"ATC", q:"When ATC instructs a pilot to “squawk ident,” the pilot should…",
+      opts:["Change to 7700","Press the IDENT button so the aircraft's radar return is highlighted","Turn off the transponder","Read back the altimeter"], correct:1,
+      why:"Pressing IDENT briefly enhances the aircraft's symbol on the controller's scope, letting them positively identify which target is yours." },
+
+    /* ---- Human factors & physiology (further) ---- */
+    { cat:"Physiology", q:"As altitude increases, a pilot's “time of useful consciousness” after a loss of oxygen…",
+      opts:["Increases","Decreases sharply","Stays the same","Becomes unlimited"], correct:1,
+      why:"TUC plummets with altitude — several minutes at 18,000 ft but only seconds above 40,000 ft — which is why rapid decompression demands immediate oxygen." },
+    { cat:"Physiology", q:"Decompression sickness (“the bends”) is a particular risk for pilots who…",
+      opts:["Fly soon after scuba diving","Drink coffee before flight","Fly at night","Skip breakfast"], correct:0,
+      why:"Ascending too soon after diving lets dissolved nitrogen form bubbles in the blood and tissues. Standard guidance is to wait 12–24 hours after diving before flying." },
+    { cat:"Physiology", q:"For best night vision, a pilot should…",
+      opts:["Stare directly at faint objects","Use off-center (peripheral) viewing and allow ~30 minutes to dark-adapt","Look into bright cockpit lights","Close one eye permanently"], correct:1,
+      why:"The rod cells that see in darkness cluster off-center and are absent at the fovea, so faint traffic and terrain are best seen slightly off to the side after ~30 minutes of adaptation." },
+    { cat:"Physiology", q:"The Coriolis illusion — a violent tumbling sensation — is triggered by…",
+      opts:["Bright sunlight","An abrupt head movement during a prolonged constant-rate turn","Low blood sugar","High cabin pressure"], correct:1,
+      why:"Moving the head (e.g. to reach a chart) during a steady turn disturbs the inner-ear fluid in multiple canals at once, producing an overwhelming false sensation of rotation." },
+    { cat:"Physiology", q:"Autokinesis, a night illusion, is the tendency for…",
+      opts:["The horizon to tilt","A single stationary light to appear to move when stared at","Colors to invert","The altimeter to lag"], correct:1,
+      why:"Fixating on one static light against a dark background makes it seem to drift, which can lead a pilot to chase a phantom. Scanning and using multiple references prevents it." },
+    { cat:"Decision Making", q:"A “graveyard spiral” develops when a disoriented pilot…",
+      opts:["Climbs too steeply","In a prolonged descending turn feels level, and pulls back — tightening the spiral","Flies too slowly in cruise","Uses too much flap"], correct:1,
+      why:"After the inner ear adapts to a turn, the pilot senses wings level; sensing a descent, they pull back — which only tightens the spiral and increases the dive. Trusting the instruments breaks it." },
+    { cat:"Physiology", q:"“Empty-field myopia” at high altitude or over featureless terrain causes the eyes to…",
+      opts:["Focus on infinity automatically","Relax to a near focus (~a few feet), missing distant traffic","See only red light","Lose all peripheral vision"], correct:1,
+      why:"With nothing to focus on, the relaxed eye focuses only a short distance ahead, so distant aircraft go unseen. Deliberately focusing on a wingtip or distant cloud resets it." },
+    { cat:"Risk Management", q:"The in-flight “5P” check prompts a pilot to reassess the Plan, the Plane, the Pilot, the Passengers, and the…",
+      opts:["Paperwork","Programming (avionics/automation)","Parking","Price of fuel"], correct:1,
+      why:"The 5P model — Plan, Plane, Pilot, Passengers, Programming — is a recurring in-flight risk review, prompting checks at key decision points rather than only before departure." },
+
+    /* ---- History & general knowledge ---- */
+    { cat:"History", q:"The first sustained, controlled powered flight took place in 1903 at Kitty Hawk, flown by…",
+      opts:["Glenn Curtiss","The Wright brothers","Louis Blériot","Santos-Dumont"], correct:1,
+      why:"On 17 December 1903, Orville and Wilbur Wright flew the Wright Flyer at Kill Devil Hills near Kitty Hawk, North Carolina — the birth of powered aviation." },
+    { cat:"History", q:"The pilot who first broke the sound barrier in level flight (1947, in the Bell X-1) was…",
+      opts:["Chuck Yeager","Neil Armstrong","Charles Lindbergh","Scott Crossfield"], correct:0,
+      why:"On 14 October 1947 Chuck Yeager flew the rocket-powered Bell X-1 “Glamorous Glennis” past Mach 1 over the Mojave — the first confirmed supersonic flight." },
+    { cat:"History", q:"An aircraft's “black box” flight recorders are actually painted…",
+      opts:["Black","Bright orange","Green","White"], correct:1,
+      why:"They're a high-visibility orange (“International Orange”) to aid recovery after a crash. The “black box” nickname stuck for other reasons entirely." },
+    { cat:"History", q:"Charles Lindbergh's famous 1927 solo nonstop flight, in the Spirit of St. Louis, crossed the…",
+      opts:["Pacific Ocean","Atlantic Ocean (New York to Paris)","English Channel","Sahara Desert"], correct:1,
+      why:"Lindbergh flew ~3,600 miles solo and nonstop from New York to Paris in 33.5 hours, electrifying the world and accelerating public faith in aviation." },
+    { cat:"History", q:"The boundary often cited as the “edge of space,” about 100 km up, is called the…",
+      opts:["Tropopause","Kármán line","Jet stream","Mesosphere"], correct:1,
+      why:"The Kármán line at roughly 100 km (62 mi) is a common definition of where aeronautics ends and astronautics begins, as aerodynamic flight becomes impractical." },
+    { cat:"History", q:"The 1944 international agreement that created ICAO and still shapes global aviation rules is the…",
+      opts:["Warsaw Convention","Chicago Convention","Treaty of Versailles","Bretton Woods Accord"], correct:1,
+      why:"The Convention on International Civil Aviation, signed in Chicago in 1944, established the International Civil Aviation Organization and the framework for international air law." },
+    { cat:"History", q:"The world's first commercial jet airliner to enter service (1952) was the…",
+      opts:["Boeing 707","de Havilland Comet","Douglas DC-8","Sud Aviation Caravelle"], correct:1,
+      why:"The de Havilland Comet began jet airline service in 1952; early fatal structural failures traced to metal fatigue at the window corners reshaped how aircraft are designed and tested." },
+
+    /* ---- Physics ---- */
+    { cat:"Physics", q:"At standard sea-level conditions, the speed of sound (Mach 1) is approximately…",
+      opts:["Half the speed of light","About 661 knots (761 mph)","About 100 knots","Exactly 1,000 mph"], correct:1,
+      why:"At 15°C sea level, sound travels about 661 knots / 761 mph / 340 m/s. It falls with temperature, so the speed of sound decreases as an aircraft climbs into colder air." },
+    { cat:"Physics", q:"Standard atmospheric pressure at sea level is about…",
+      opts:["1013 hPa (29.92 inHg)","500 hPa","2000 hPa","760 hPa"], correct:0,
+      why:"The ISA sea-level pressure is 1013.25 hPa, equal to 29.92 inHg or 14.7 psi — the reference for altimetry and performance." },
+    { cat:"Physics", q:"The local speed of sound in the atmosphere primarily depends on the air's…",
+      opts:["Pressure","Temperature","Humidity","Color"], correct:1,
+      why:"Sound speed varies with the square root of absolute temperature, so it drops with altitude as the air cools — which is why Mach number (not indicated speed) governs high-altitude flight." },
+    { cat:"Weather", q:"Relative humidity reaches 100% when the air…",
+      opts:["Is completely dry","Is holding all the water vapor it can at that temperature (saturated)","Is warmer than the dewpoint by 10°","Contains no oxygen"], correct:1,
+      why:"At 100% relative humidity the air is saturated — temperature equals dewpoint — and any further cooling forces condensation into cloud, fog, dew or precipitation." },
+    { cat:"Emergencies", q:"A pilot facing unlawful interference (a hijacking) would set transponder code…",
+      opts:["7500","7600","7700","1200"], correct:0,
+      why:"7500 silently alerts ATC to unlawful interference (hijack); 7600 is lost communications and 7700 is a general emergency. The phrase “fifteen hundred hours I was hijacked” helps some recall 7500 = hijack." },
+
+    { cat:"Aerodynamics", q:"Winglets on a wingtip improve efficiency mainly by…",
+      opts:["Adding thrust","Weakening the wingtip vortex and reducing induced drag","Increasing the wing's weight","Raising the never-exceed speed"], correct:1,
+      why:"By blocking the high-to-low pressure flow that curls around the tip, winglets shrink the trailing vortex and its induced drag — saving fuel, especially on long-range jets." },
+    { cat:"Control", q:"The rudder controls the aircraft's movement about which axis?",
+      opts:["The longitudinal (roll) axis","The lateral (pitch) axis","The vertical (yaw) axis","No axis — it only assists brakes"], correct:2,
+      why:"The rudder yaws the nose left and right about the vertical (normal) axis. Ailerons roll about the longitudinal axis; the elevator pitches about the lateral axis." },
+    { cat:"Flight Mechanics", q:"An aircraft's three axes of rotation, all passing through the center of gravity, are the longitudinal, the lateral, and the…",
+      opts:["Diagonal axis","Vertical (normal) axis","Chord axis","Thrust axis"], correct:1,
+      why:"Roll is about the longitudinal axis, pitch about the lateral axis, and yaw about the vertical axis — all intersecting at the CG, the point the aircraft rotates around." },
+    { cat:"Control", q:"A trim tab is used to…",
+      opts:["Increase the maximum speed","Relieve the steady control-column pressure a pilot would otherwise hold","Lock the controls on the ground","Extend the flaps"], correct:1,
+      why:"Trim tabs hold a control surface at the needed deflection so the pilot doesn't have to maintain constant pressure — letting the aircraft fly hands-off at a chosen attitude/speed." },
+    { cat:"Flight Mechanics", q:"A forward slip is used on approach to…",
+      opts:["Gain airspeed quickly","Lose altitude steeply without gaining airspeed","Reduce the descent rate","Increase lift"], correct:1,
+      why:"Cross-controlling (aileron one way, opposite rudder) presents the fuselage to the airflow, adding drag so the aircraft descends steeply at a controlled speed — handy to lose height over an obstacle or without flaps." },
+    { cat:"Systems", q:"Pre-ignition in a piston engine is…",
+      opts:["The normal spark timing","The fuel/air charge igniting before the spark, usually from a glowing hot spot","A cold-start condition","The same thing as leaning"], correct:1,
+      why:"A hot spot (a glowing deposit or overheated plug) lights the mixture too early, fighting the piston's rise. Like detonation it can quickly destroy an engine, and the two often accompany each other." },
+    { cat:"Operations", q:"During a go-around (balked landing), the pilot's first action should be to…",
+      opts:["Retract the flaps fully at once","Apply power and establish a climb attitude","Lower the landing gear","Turn crosswind immediately"], correct:1,
+      why:"Power first to arrest the descent and establish a positive climb, then retract flaps and gear in stages. Dumping all the flaps first can cause a sudden sink at low altitude." },
+    { cat:"Operations", q:"To avoid wake turbulence when landing behind a heavy jet, a pilot should stay…",
+      opts:["Below its glidepath and land before its touchdown point","At or above its flight path and land beyond its touchdown point","Directly on its exact path","As fast as possible"], correct:1,
+      why:"Vortices sink and drift, so staying above the heavy's path and touching down beyond its touchdown point keeps you clear of the descending, rolling wake." },
+    { cat:"Airports", q:"At a towered airport, the solid yellow runway holding-position (hold-short) lines mean a pilot must…",
+      opts:["Cross without stopping","Not cross onto the runway without an ATC clearance","Turn around","Increase taxi speed"], correct:1,
+      why:"You hold on the solid-line side until cleared; crossing the hold-short markings onto an active runway without clearance is a runway incursion — a serious and common safety violation." },
+    { cat:"Performance", q:"A typical “normal category” general-aviation airplane has a positive limit load factor of about…",
+      opts:["+1.5 G","+3.8 G","+6.0 G","+10 G"], correct:1,
+      why:"Normal category is certified to +3.8 G (−1.52 G). Utility category allows +4.4 G and aerobatic category +6.0 G — exceeding the limit risks permanent structural damage." },
+
+    /* ================= EXPANSION TO 250 ================= */
+
+    /* ---- Radiotelephony ---- */
+    { cat:"Radiotelephony", q:"In the ICAO/NATO phonetic alphabet, the letter “R” is spoken as…",
+      opts:["Roger","Romeo","Radio","Robert"], correct:1,
+      why:"“Romeo” is the phonetic for R. (“Roger” is a separate procedural word meaning a transmission was received — not a letter.)" },
+    { cat:"Radiotelephony", q:"Over the radio, the word “Roger” means…",
+      opts:["Yes, I agree","I have received all of your last transmission","I will comply with your instruction","Please repeat"], correct:1,
+      why:"“Roger” only acknowledges receipt — “I got it all.” It is NOT a “yes,” and it does not promise compliance; that's “Wilco.”" },
+    { cat:"Radiotelephony", q:"A pilot replies “Wilco.” This means…",
+      opts:["Please say again","Received, and I will comply","Standby","Negative"], correct:1,
+      why:"“Wilco” = “will comply” — it both acknowledges the message and confirms the pilot will carry out the instruction." },
+    { cat:"Radiotelephony", q:"To ask a controller or station to repeat their last transmission, the correct phrase is…",
+      opts:["“Repeat”","“Say again”","“Come back”","“Rerun”"], correct:1,
+      why:"“Say again” requests a repeat. “Repeat” is avoided because in combined operations it can be a call for artillery fire — aviation uses “say again.”" },
+    { cat:"Radiotelephony", q:"The spoken distress call indicating grave and imminent danger is…",
+      opts:["“Pan-Pan” (three times)","“Mayday” (three times)","“Securité”","“Standby”"], correct:1,
+      why:"“Mayday, Mayday, Mayday” declares distress — a life-threatening emergency. “Pan-Pan” (three times) signals urgency: a serious situation that is not yet an immediate threat to life." },
+
+    /* ---- ATP-specific: high-altitude, transport & IFR ---- */
+    { cat:"High-Altitude", q:"RVSM airspace reduces the vertical separation between suitably equipped aircraft to 1,000 ft between…",
+      opts:["FL180 and FL240","FL290 and FL410","FL410 and FL600","The surface and FL180"], correct:1,
+      why:"Reduced Vertical Separation Minimum applies 1,000-ft separation (instead of 2,000) from FL290 to FL410, adding usable cruising levels in busy high-altitude airspace." },
+    { cat:"High-Altitude", q:"In the United States, pilots set the altimeter to 29.92 and use flight levels at and above…",
+      opts:["10,000 ft","14,000 ft","18,000 ft (FL180)","24,000 ft"], correct:2,
+      why:"18,000 ft MSL is the U.S. transition altitude and the floor of Class A; at and above it everyone references standard pressure (29.92) and reports flight levels." },
+    { cat:"High-Altitude", q:"On a jet's airspeed indicator, the “barber pole” marks…",
+      opts:["The stall speed","VMO/MMO — the maximum operating airspeed/Mach","Best-glide speed","The flap limit"], correct:1,
+      why:"The striped barber-pole needle shows VMO (a speed limit low down) transitioning to MMO (a Mach limit up high); exceeding it risks overspeed, buffet and structural loads." },
+    { cat:"Transport", q:"A “stabilized approach” for an airliner generally requires the aircraft to be configured, on speed and on path by…",
+      opts:["The final flare","1,000 ft above the airport in IMC (500 ft in VMC)","The middle marker only","Touchdown"], correct:1,
+      why:"If not stabilized by the gate (typically 1,000 ft AGL in IMC, 500 ft VMC), the required action is a go-around — unstabilized approaches are a leading cause of landing accidents." },
+    { cat:"Transport", q:"A Category III ILS approach is distinguished by…",
+      opts:["Higher weather minimums than Cat I","Very low or zero visibility minimums, typically using autoland","Use only in visual conditions","No need for a glideslope"], correct:1,
+      why:"Cat II and especially Cat III approaches permit landings in very low visibility using precise, redundant equipment and usually autoland — with aircraft, crew and airport all specially certified." },
+    { cat:"IFR", q:"On an instrument approach, a Decision Height (DH) rather than a Minimum Descent Altitude (MDA) is used on a…",
+      opts:["Non-precision approach","Precision (or approach with vertical guidance) approach","Visual approach","Circling approach"], correct:1,
+      why:"A DH belongs to precision/vertical-guidance approaches (ILS, LPV): at the DH you decide to land or go around. Non-precision approaches use an MDA you must not descend below until the landing is assured." },
+    { cat:"Transport", q:"An airliner's landing reference speed, VREF, is approximately…",
+      opts:["1.0 × the landing-configuration stall speed","1.3 × the landing-configuration stall speed (VSO)","2.0 × VSO","Equal to VNE"], correct:1,
+      why:"VREF is set near 1.3 × VSO to give a safe margin above the stall over the threshold, then adjusted for wind and gust factors on the approach." },
+    { cat:"Transport", q:"V2, computed for a transport takeoff, is the…",
+      opts:["Speed to begin the takeoff roll","Takeoff safety speed — the minimum climb speed to hold after an engine failure","Maximum tire speed","Speed to retract the gear"], correct:1,
+      why:"V2 is the target climb speed with an engine failed at or after V1, giving the required climb gradient until a safe height, where the aircraft accelerates and cleans up." },
+    { cat:"Transport", q:"“Accelerate-stop distance” is the runway length needed to…",
+      opts:["Take off and climb to 1,500 ft","Accelerate to V1, then reject the takeoff and stop","Land and taxi clear","Accelerate to cruise speed"], correct:1,
+      why:"It's the distance to accelerate to the decision speed V1 and then bring the aircraft to a stop if the takeoff is rejected — a key number in a rejected-takeoff (RTO) decision." },
+    { cat:"Transport", q:"If a TCAS Resolution Advisory (RA) conflicts with an ATC instruction, the crew must…",
+      opts:["Follow the ATC instruction","Follow the RA and advise ATC","Ignore both and maintain heading","Descend immediately regardless"], correct:1,
+      why:"A TCAS RA is followed even against ATC, because both conflicting aircraft's systems coordinate the maneuver; the crew promptly tells ATC they are responding to an RA." },
+    { cat:"Transport", q:"An EGPWS/TAWS aural “PULL UP” warning tells the crew that…",
+      opts:["The engines are overspeeding","The aircraft is dangerously close to terrain and must climb immediately","The cabin is depressurizing","The gear is unsafe"], correct:1,
+      why:"Terrain Awareness and Warning Systems compare position to a terrain database and command an immediate max-performance climb to prevent controlled flight into terrain (CFIT)." },
+    { cat:"Transport", q:"A stick shaker and a stick pusher differ in that the shaker…",
+      opts:["Pushes the nose down at the stall","Warns of an approaching stall, while the pusher actively lowers the nose","Retracts the flaps","Is only used on the ground"], correct:1,
+      why:"The stick shaker vibrates the yoke to warn of an impending stall; if angle of attack keeps rising, the stick pusher physically forces the nose down to prevent the stall." },
+    { cat:"Transport", q:"A yaw damper is fitted to many swept-wing jets primarily to…",
+      opts:["Increase cruise speed","Automatically counter Dutch roll","Steer on the ground","Reduce fuel burn"], correct:1,
+      why:"Swept-wing jets are prone to Dutch roll; the yaw damper applies small automatic rudder inputs to suppress the oscillation and smooth the ride." },
+    { cat:"Transport", q:"On a pressurized airliner, a cabin-altitude warning horn typically sounds when the cabin altitude climbs through about…",
+      opts:["5,000 ft","10,000 ft","25,000 ft","40,000 ft"], correct:1,
+      why:"A cabin altitude of roughly 10,000 ft triggers the warning, prompting the crew to don oxygen masks, begin an emergency descent, and troubleshoot the pressurization." },
+    { cat:"Transport", q:"After an engine failure at high altitude, a twin's “drift-down” procedure means the aircraft…",
+      opts:["Dives rapidly to the ground","Descends gradually to an altitude it can maintain on the remaining engine","Holds its cruise altitude indefinitely","Jettisons fuel and lands immediately"], correct:1,
+      why:"With reduced thrust the aircraft can no longer hold cruise level, so it drifts down to its single-engine ceiling — a driving concern in ETOPS terrain and route planning." },
+    /* ---- Aerodynamics & flight mechanics ---- */
+    { cat:"Aerodynamics", q:"Compared with plain or split flaps, Fowler flaps produce the most lift because they…",
+      opts:["Only deflect downward","Slide aft AND down, increasing both wing area and camber","Reduce the wing area","Act as spoilers"], correct:1,
+      why:"Fowler flaps extend rearward on tracks before deflecting down, adding area first (more lift) and then camber (still more lift) — hence their use on most airliners." },
+    { cat:"Aerodynamics", q:"Spoilers (speed brakes) deployed on the upper wing surface…",
+      opts:["Increase lift","Reduce lift and increase drag","Increase thrust","Lower the stall speed"], correct:1,
+      why:"Spoilers disrupt airflow to dump lift and add drag — used to descend steeply, slow down, or (as ground spoilers) plant the aircraft on the runway for braking." },
+    { cat:"Aerodynamics", q:"Frise ailerons are shaped to help counter…",
+      opts:["Mach tuck","Adverse yaw","Ground effect","Wing icing"], correct:1,
+      why:"On a Frise aileron the up-going surface projects its leading edge into the airflow, adding drag on that side to offset the extra drag of the down-going aileron — reducing adverse yaw." },
+    { cat:"Flight Mechanics", q:"A canard is…",
+      opts:["A rear-mounted tail","A small horizontal surface mounted ahead of the main wing","A type of landing gear","A wingtip fuel tank"], correct:1,
+      why:"A canard is a foreplane ahead of the wing; it can provide pitch control and lift, and is often designed to stall before the main wing for stall resistance." },
+    { cat:"Flight Mechanics", q:"As angle of attack increases, the coefficient of lift…",
+      opts:["Rises without limit","Rises to a maximum at the critical angle, then drops sharply as the wing stalls","Stays constant","Falls immediately"], correct:1,
+      why:"CL climbs with AoA up to the critical angle (CLmax), then collapses as the airflow separates — the very definition of the stall, independent of airspeed." },
+
+    /* ---- Weather ---- */
+    { cat:"Weather", q:"In the Northern Hemisphere, the Coriolis effect deflects moving air to the…",
+      opts:["Left","Right","Straight up","Straight down"], correct:1,
+      why:"Earth's rotation deflects freely moving air to the right in the Northern Hemisphere, shaping the clockwise flow around highs and counter-clockwise flow around lows." },
+    { cat:"Weather", q:"Around a high-pressure system in the Northern Hemisphere, surface winds tend to flow…",
+      opts:["Counter-clockwise and inward, with rising air","Clockwise and outward, with sinking air and generally fair weather","Straight toward the center","Only vertically"], correct:1,
+      why:"Highs are anticyclonic: clockwise, outward flow with descending, drying air — usually fair skies. Lows are the reverse: inward, rising, cloud- and precipitation-forming air." },
+    { cat:"Weather", q:"On a surface chart, tightly packed isobars indicate…",
+      opts:["Light winds","Strong winds","No wind","Warm temperatures"], correct:1,
+      why:"Closely spaced isobars mean a steep pressure gradient, which drives stronger winds; widely spaced isobars indicate a gentle gradient and lighter winds." },
+    { cat:"Weather", q:"The Intertropical Convergence Zone (ITCZ) is…",
+      opts:["A band of thunderstorms and heavy convection near the equator","A polar high-pressure area","A jet stream over the poles","A desert wind"], correct:0,
+      why:"Where the hemispheres' trade winds converge near the equator, air rises to form a shifting belt of towering cumulus and thunderstorms — a major hazard on tropical routes." },
+    { cat:"Weather", q:"Frost on the wings before takeoff is hazardous because it…",
+      opts:["Adds useful weight","Disrupts airflow over the wing, spoiling lift and raising stall speed","Improves lift","Only affects the paint"], correct:1,
+      why:"Even a thin layer of frost roughens the wing enough to disturb the boundary layer, cutting lift and raising stall speed — it must be completely removed before flight." },
+    { cat:"Weather", q:"“Steam fog” (sea smoke) forms when…",
+      opts:["Warm air moves over a cold surface","Cold air moves over a warmer body of water","Rain falls through dry air","The air is perfectly still and warm"], correct:1,
+      why:"Cold air flowing over relatively warm water picks up moisture that immediately condenses, producing wisps of fog rising like steam from the surface." },
+
+    /* ---- Navigation & instruments ---- */
+    { cat:"Navigation", q:"A knot is a speed of…",
+      opts:["One statute mile per hour","One nautical mile per hour","One kilometre per minute","One nautical mile per minute"], correct:1,
+      why:"A knot is one nautical mile per hour. Since a minute of latitude is one nautical mile, knots tie neatly to chart distances." },
+    { cat:"Navigation", q:"The correct order to convert a true course to a compass heading is…",
+      opts:["True → Deviation → Magnetic → Variation → Compass","True → Variation → Magnetic → Deviation → Compass","Compass → Magnetic → True","Magnetic → True → Compass"], correct:1,
+      why:"“TVMDC” — True, apply Variation to get Magnetic, apply Deviation to get Compass. A common mnemonic is “True Virgins Make Dull Company.”" },
+    { cat:"Navigation", q:"Aviation uses Coordinated Universal Time (UTC, “Zulu”) because it…",
+      opts:["Is always local noon","Avoids confusion across time zones with a single worldwide reference","Runs faster than local time","Only applies at the equator"], correct:1,
+      why:"Flights cross many zones, so ATC, flight plans and weather all use one clock — UTC/Zulu — to keep timing unambiguous everywhere." },
+    { cat:"Instruments", q:"A Horizontal Situation Indicator (HSI) is useful because it combines…",
+      opts:["Airspeed and altitude","The heading indicator with VOR/ILS course guidance","Engine RPM and manifold pressure","Fuel and oil readings"], correct:1,
+      why:"The HSI overlays course deviation and glideslope onto a slaved heading display, giving an intuitive top-down picture of the aircraft relative to the selected course." },
+    { cat:"Instruments", q:"WAAS augments GPS mainly by…",
+      opts:["Adding more satellites","Improving accuracy and integrity enough for vertical (LPV) approach guidance","Providing weather radar","Replacing the altimeter"], correct:1,
+      why:"The Wide Area Augmentation System sends correction data that sharpens GPS accuracy and reliability, enabling approaches with glidepath guidance down to near-ILS minimums." },
+
+    /* ---- Systems ---- */
+    { cat:"Systems", q:"Besides lubrication, a major job of an aircraft engine's oil is to…",
+      opts:["Ignite the fuel","Carry away heat (cooling)","Charge the battery","Inflate the tires"], correct:1,
+      why:"Oil lubricates, cleans, seals and — crucially — cools, carrying heat from the pistons and bearings to the oil cooler. Low oil quantity or pressure quickly threatens the engine." },
+    { cat:"Systems", q:"Tricycle landing gear (a nosewheel) is generally more forgiving than a taildragger because it…",
+      opts:["Is lighter","Places the CG ahead of the mains, making the aircraft directionally stable on the ground","Needs no brakes","Cannot ground-loop ever"], correct:1,
+      why:"With the CG forward of the main wheels, a tricycle-gear aircraft tends to track straight, whereas a taildragger's aft CG makes it prone to swinging (ground loops)." },
+    { cat:"Systems", q:"Dual magnetos and two spark plugs per cylinder provide redundancy and also…",
+      opts:["Reduce the engine's weight","More complete, efficient combustion (a slight power gain)","Cooler oil","Automatic mixture control"], correct:1,
+      why:"Two spark sources light the charge from two points, burning it more completely for a small power and efficiency gain — plus the safety of a backup ignition path." },
+    { cat:"Systems", q:"Fuel-injected piston engines are less prone than carbureted ones to…",
+      opts:["Detonation","Induction (carburetor) icing","Oil leaks","Magneto failure"], correct:1,
+      why:"Injecting fuel directly at the cylinders avoids the venturi temperature drop that causes carburetor icing — one reason many engines moved to fuel injection." },
+
+    /* ---- Airspace, regs & airports ---- */
+    { cat:"Airspace / Regs", q:"A Military Operations Area (MOA) is established to…",
+      opts:["Prohibit all civilian flight permanently","Separate military training activity from IFR traffic (VFR may transit with caution)","Mark an airport traffic pattern","Designate a fuel stop"], correct:1,
+      why:"MOAs contain military maneuvers; ATC keeps IFR traffic clear or advises it, and VFR pilots may legally transit but should check whether the MOA is active and stay alert." },
+    { cat:"Airspace / Regs", q:"A Prohibited Area (such as P-56 over the U.S. Capitol and White House) means…",
+      opts:["Flight is allowed with a transponder","Flight is entirely forbidden within its boundaries","VFR is fine below 1,000 ft","Only military jets may enter"], correct:1,
+      why:"Prohibited areas ban flight altogether for security or national-welfare reasons. Restricted areas, by contrast, may sometimes be transited when not active, with permission." },
+    { cat:"Airspace / Regs", q:"In the U.S., Class E airspace generally extends upward to, but does not include…",
+      opts:["10,000 ft MSL","14,500 ft MSL","18,000 ft MSL (the base of Class A)","60,000 ft"], correct:2,
+      why:"Class E fills much of the controlled airspace up to 18,000 ft MSL, where Class A begins. Its floor varies — often 700 or 1,200 ft AGL, or the surface near some airports." },
+    { cat:"Airports", q:"A rotating airport beacon alternating white and green identifies…",
+      opts:["A military airport","A lighted civilian land airport","A heliport","A restricted area"], correct:1,
+      why:"White-and-green identifies a lighted civil land airport. A military airport alternates white-white-green (a dual white flash); other colors mark water airports and heliports." },
+    { cat:"Airports", q:"On the airport surface, a red sign with white lettering is…",
+      opts:["A direction sign","A mandatory instruction sign (e.g., a runway hold position)","A distance-remaining sign","A taxiway location sign"], correct:1,
+      why:"Red mandatory signs mark holding positions and boundaries you may not cross without clearance. Black-with-yellow are location signs; yellow-with-black are direction/destination signs." },
+
+    /* ---- Operations, physiology & human factors ---- */
+    { cat:"Operations", q:"A windsock at an airport tells a pilot the…",
+      opts:["Runway length","Wind direction and rough speed, so they can take off and land into the wind","Airport elevation","Radio frequency"], correct:1,
+      why:"The sock streams away from the wind and stiffens as it strengthens. Pilots take off and land into the wind for the lowest groundspeed and shortest ground roll." },
+    { cat:"Operations", q:"To carry passengers, a pilot must have completed, within the preceding 90 days,…",
+      opts:["A flight review","Three takeoffs and landings","An instrument approach","A medical exam"], correct:1,
+      why:"Passenger-carrying recency requires three takeoffs and landings in the last 90 days (in the same category/class); night passenger currency requires them to a full stop at night." },
+    { cat:"Physiology", q:"U.S. “bottle-to-throttle” rules prohibit acting as a crewmember within ______ of consuming alcohol, or with a blood-alcohol level at or above 0.04%.",
+      opts:["1 hour","8 hours","30 minutes","24 hours"], correct:1,
+      why:"At least 8 hours must pass from “bottle to throttle,” and the pilot must be below 0.04% BAC and not under the influence — and hangover effects can impair well beyond 8 hours." },
+    { cat:"Physiology", q:"A painful ear or sinus “block” is most likely to occur during…",
+      opts:["A climb","A descent, as outside pressure increases","Straight-and-level cruise","Engine start"], correct:1,
+      why:"On descent, rising ambient pressure must be equalized into the ears and sinuses; congestion can trap lower pressure inside, causing pain or even damage — worse with a cold." },
+    { cat:"Human Factors", q:"Crew (or Cockpit) Resource Management, CRM, is best described as…",
+      opts:["A fuel-planning method","The effective use of all available resources — people, equipment and information — for safe, efficient flight","A type of autopilot","An engine-monitoring system"], correct:1,
+      why:"CRM turns communication, leadership, workload management and decision-making into deliberate skills, breaking the error chains that once caused otherwise avoidable accidents." },
+
+    /* ================= EXPANSION TO 300 ================= */
+
+    /* ---- Aerodynamics & flight mechanics ---- */
+    { cat:"Aerodynamics", q:"Bernoulli's principle, as applied to a wing, states that where the airflow speeds up, its…",
+      opts:["Static pressure rises","Static pressure falls","Temperature rises sharply","Density doubles"], correct:1,
+      why:"Faster-moving air over the curved upper surface has lower static pressure; the higher pressure beneath then contributes to lift. (Downwash and Newton's third law explain the rest.)" },
+    { cat:"Aerodynamics", q:"Parasite drag grows with the square of airspeed while induced drag falls with speed, so total drag is at a minimum at…",
+      opts:["The stall speed","The speed for best lift-to-drag ratio (L/Dmax)","The never-exceed speed","Full power"], correct:1,
+      why:"Where the two drag curves cross — L/Dmax — total drag is least and range/glide is greatest; this is the basis of best-glide and maximum-endurance speeds." },
+    { cat:"Control", q:"The horizontal stabilizer (tailplane) chiefly provides an aircraft's…",
+      opts:["Directional (yaw) stability","Longitudinal (pitch) stability","Lateral (roll) stability","Cabin pressurization"], correct:1,
+      why:"The tailplane resists pitch changes, keeping the nose steady — longitudinal stability. The vertical fin handles yaw; dihedral handles roll." },
+    { cat:"Control", q:"The vertical fin provides an aircraft's…",
+      opts:["Pitch stability","Directional (yaw) stability, weathervaning the nose into the relative wind","Roll stability","Lift"], correct:1,
+      why:"Like a weathervane, the fin keeps the nose pointed into the relative wind, damping yaw excursions — directional (weathercock) stability." },
+    { cat:"Flight Mechanics", q:"On a conventionally stable airplane, the center of gravity is located…",
+      opts:["Behind the center of lift, so the tail lifts up","Ahead of the center of lift, so the tail carries a download","Exactly at the center of lift","At the wingtip"], correct:1,
+      why:"With the CG ahead of the lift, the nose wants to drop; a tail download balances it. This arrangement makes the aircraft pitch-stable and gives stall recovery its natural nose-down tendency." },
+    { cat:"Flight Mechanics", q:"The “boundary layer” is…",
+      opts:["The line between two air masses","The thin layer of air, slowed by friction, right next to the aircraft's surface","The top of the troposphere","The edge of controlled airspace"], correct:1,
+      why:"Skin friction slows the air immediately adjacent to the surface; managing this boundary layer (with vortex generators, slots, etc.) delays separation and stall." },
+    { cat:"Flight Mechanics", q:"Small “stall strips” on a wing's leading edge are fitted to…",
+      opts:["Increase top speed","Trigger the wing root to stall before the tips, preserving aileron control","Reduce fuel burn","Prevent icing"], correct:1,
+      why:"By forcing an early, clean root stall, stall strips keep airflow attached at the ailerons and give a recognizable straight-ahead stall break rather than a wing drop." },
+    { cat:"Flight Mechanics", q:"“Aileron reversal” at very high speed occurs when…",
+      opts:["The ailerons freeze","Aerodynamic loads twist a flexible wing, reversing the intended roll","The autopilot disconnects","The flaps deploy"], correct:1,
+      why:"At high dynamic pressure, a down-going aileron can twist the wing enough to reduce its angle of attack, so the aircraft rolls opposite to the input — an aeroelastic limit on some designs." },
+
+    /* ---- Weather ---- */
+    { cat:"Weather", q:"Cirrus clouds are…",
+      opts:["Low, grey layered clouds","High, wispy clouds made of ice crystals","Towering thunderstorm clouds","Ground-hugging fog"], correct:1,
+      why:"Cirrus form high in the troposphere from ice crystals; thickening, lowering cirrus often signals an approaching warm front and deteriorating weather." },
+    { cat:"Weather", q:"Which pairing is correct?",
+      opts:["Stratus = puffy heaps; cumulus = flat layers","Stratus = flat layers; cumulus = puffy heaps","Both are ice clouds only","Both mean fog"], correct:1,
+      why:"“Stratus” means layered (flat, widespread), while “cumulus” means heaped (puffy). The prefixes/suffixes (nimbo-, alto-, -nimbus) then add height and precipitation." },
+    { cat:"Weather", q:"A PIREP is…",
+      opts:["A pre-flight inspection report","A pilot report of actual conditions encountered in flight","A type of approach","A runway marking"], correct:1,
+      why:"Pilot reports relay real, observed conditions — turbulence, icing, cloud tops, ride quality — filling the gaps between forecasts and ground observations for other pilots." },
+    { cat:"Weather", q:"Wind shear is…",
+      opts:["A steady crosswind","A sudden change in wind speed and/or direction over a short distance","A type of fog","Air that is perfectly smooth"], correct:1,
+      why:"Rapid changes in the wind — vertically or horizontally — can abruptly alter airspeed and lift. Low-level wind shear on approach or departure is especially dangerous." },
+    { cat:"Weather", q:"Compared with warm air, cold air is…",
+      opts:["Less dense and rises","More dense and sinks","Identical in density","Always moister"], correct:1,
+      why:"Cold air is denser and tends to sink, while warm air rises — the engine behind convection, sea breezes, thunderstorms and frontal lifting." },
+    { cat:"Weather", q:"Frost forms on an aircraft when a surface cools…",
+      opts:["Above the dewpoint","Below the dewpoint and below freezing, so water vapor deposits directly as ice","Only in rain","Only at high altitude"], correct:1,
+      why:"When the skin drops below both the dewpoint and 0°C, vapor deposits as frost. Even a thin layer must be removed — it roughens the wing and spoils lift." },
+    { cat:"Weather", q:"A chinook (foehn) wind is…",
+      opts:["A cold, wet sea wind","A warm, dry wind descending the lee side of a mountain range","A polar easterly","A type of thunderstorm"], correct:1,
+      why:"As air descends a mountain's lee side it compresses and warms, arriving warm and dry — chinooks can raise temperatures dramatically and rapidly melt snow." },
+    { cat:"Weather", q:"Hail grows inside a thunderstorm by…",
+      opts:["Freezing on the ground","Being cycled up and down through the cell, accreting layers of ice","Falling straight down once","Forming in clear air"], correct:1,
+      why:"Strong updrafts carry water drops high where they freeze and collect more ice on each trip up and down, until they grow too heavy for the updraft and fall — sometimes ejected miles from the cell." },
+    { cat:"Weather", q:"An altimeter set to QFE (rather than QNH) reads…",
+      opts:["Altitude above mean sea level","Height above the airfield (zero on the ground)","Pressure altitude","Density altitude"], correct:1,
+      why:"QFE references field-level pressure so the altimeter reads height above the field (zero on the runway); QNH references sea level so it reads altitude above MSL." },
+
+    /* ---- Navigation & instruments ---- */
+    { cat:"Navigation", q:"A rhumb line is a route flown at a…",
+      opts:["Constant compass heading","Constantly changing heading","Constant altitude only","Right angle to the wind"], correct:0,
+      why:"A rhumb line crosses every meridian at the same angle — a constant heading. It's longer than a great circle but simpler to steer, which mattered before modern navigation." },
+    { cat:"Navigation", q:"Lines of longitude (meridians)…",
+      opts:["Are parallel everywhere","Converge at the poles and are widest at the equator; 0° passes through Greenwich","Measure north–south position","Never meet"], correct:1,
+      why:"Meridians run pole to pole, converging at the poles; the Prime Meridian (0° longitude) runs through Greenwich, England, and is the reference for longitude and time." },
+    { cat:"Navigation", q:"A VOR's “TO/FROM” indicator tells the pilot…",
+      opts:["The wind direction","Whether the selected course would take the aircraft to or away from the station","The aircraft's altitude","The distance remaining"], correct:1,
+      why:"TO/FROM resolves the ambiguity of a radial: the same course line can lead toward or away from the VOR, and the flag shows which — independent of the aircraft's heading." },
+    { cat:"Instruments", q:"The needle (course deviation indicator) on a VOR/ILS display shows…",
+      opts:["The aircraft's airspeed","How far left or right of the selected course the aircraft is","Engine RPM","The outside temperature"], correct:1,
+      why:"The CDI needle deflects toward the course: center means on course, and full-scale deflection means the aircraft is off to one side (a few degrees on a VOR, less on a localizer)." },
+
+    /* ---- Airspace, regs, airports & operations ---- */
+    { cat:"Airspace / Regs", q:"On a VFR sectional chart, Class B airspace is depicted by…",
+      opts:["Solid magenta lines","Solid blue lines","Dashed magenta lines","A magenta shaded band"], correct:1,
+      why:"Class B is solid blue, Class C solid magenta, Class D dashed blue, and Class E surface areas dashed magenta — with magenta/blue fades marking Class E floors of 700/1,200 ft AGL." },
+    { cat:"Airspace / Regs", q:"Before any flight, FAR 91.103 requires the pilot to become familiar with…",
+      opts:["Only the destination weather","All available information — weather, fuel needs, alternatives, and runway/performance data","Just the aircraft registration","Nothing, if VFR"], correct:1,
+      why:"“All available information concerning that flight” includes weather, fuel requirements, alternatives if the flight can't be completed, known traffic delays, and runway lengths and takeoff/landing distances." },
+    { cat:"Airspace / Regs", q:"A standard-category aircraft must have an annual inspection every…",
+      opts:["6 calendar months","12 calendar months (plus a 100-hour inspection if used for hire)","24 calendar months","50 flight hours"], correct:1,
+      why:"An annual is required every 12 calendar months; aircraft carrying persons for hire or used for flight instruction for hire also need a 100-hour inspection." },
+    { cat:"Airspace / Regs", q:"A “Warning Area” differs from a Restricted Area in that it…",
+      opts:["Is always over land","Begins 3 nm out over international/coastal waters, where the U.S. can't legally 'restrict'","Prohibits all flight forever","Is only for balloons"], correct:1,
+      why:"Warning Areas extend from 3 nm outward over water and contain activity hazardous to aircraft; because it's international airspace, the label 'warning' is used instead of 'restricted.'" },
+    { cat:"Airspace / Regs", q:"VFR above 10,000 ft MSL (and more than 1,200 ft AGL) requires visibility and cloud clearance of…",
+      opts:["3 SM; 500 below, 1,000 above, 2,000 horizontal","5 SM; 1,000 below, 1,000 above, 1 SM horizontal","1 SM; clear of clouds","No requirement"], correct:1,
+      why:"Higher up, faster traffic needs more room: 5 statute miles visibility with 1,000 ft below/above and 1 statute mile horizontal from clouds — versus the “3-152” rule lower down." },
+    { cat:"Airports", q:"Runway End Identifier Lights (REIL) are…",
+      opts:["Steady green threshold lights","A pair of synchronized flashing lights marking the runway threshold","Taxiway edge lights","Approach glidepath lights"], correct:1,
+      why:"REIL are two synchronized flashing lights either side of the runway threshold, helping a pilot pick out the landing end against a cluttered or poorly lit background." },
+    { cat:"Airports", q:"A segmented circle with extended L-shaped legs at a non-towered airport indicates…",
+      opts:["The runway is closed","The traffic-pattern direction (e.g., right-hand traffic) for a runway","Fuel is available","The wind is calm"], correct:1,
+      why:"The traffic-pattern indicators around a segmented circle show the base-to-final turn direction for each runway, alerting pilots to non-standard (right-hand) patterns." },
+    { cat:"Operations", q:"At a non-towered airport, pilots coordinate by self-announcing their position and intentions on the…",
+      opts:["Emergency frequency 121.5","CTAF/UNICOM (the common traffic advisory frequency)","Center frequency","Transponder"], correct:1,
+      why:"Without a tower, everyone broadcasts on the CTAF (often a UNICOM) to build a shared mental picture of who's where in the pattern and on the runway." },
+    { cat:"Operations", q:"A tetrahedron or wind tee at an airfield indicates…",
+      opts:["The airport elevation","The direction to land/take off (aligned with the wind)","The radio frequency","The runway length"], correct:1,
+      why:"These ground indicators point in the landing direction (into the wind). Note a free-swinging tetrahedron shows wind direction, but it may be locked to show the preferred landing direction." },
+
+    /* ---- Systems ---- */
+    { cat:"Systems", q:"A fuel's octane (or grade) rating indicates its…",
+      opts:["Energy content","Resistance to detonation","Color","Freezing point"], correct:1,
+      why:"Higher octane resists detonation (knock) under high pressure and temperature. Using a lower grade than specified invites destructive detonation — never downgrade fuel." },
+    { cat:"Systems", q:"Carburetor heat prevents or clears carb ice by…",
+      opts:["Electrically heating the fuel","Routing warm, unfiltered air from a shroud around the exhaust into the carburetor","Injecting alcohol","Increasing RPM automatically"], correct:1,
+      why:"Warm air from the exhaust muff melts or prevents ice in the venturi. Because it's unfiltered and less dense, carb heat also causes a slight power loss — expected and normal." },
+    { cat:"Systems", q:"Cowl flaps on a piston aircraft are used to…",
+      opts:["Trim the aircraft","Control engine cooling airflow — open for climb, closed to retain heat","Deploy in an emergency","Adjust the mixture"], correct:1,
+      why:"Open cowl flaps increase cooling airflow during high-power, low-speed climbs; closing them in cruise reduces drag and keeps cylinder temperatures from dropping too far." },
+    { cat:"Systems", q:"During the run-up, checking each magneto (the “mag drop”) verifies…",
+      opts:["Oil quantity","That each independent ignition system is firing (a small RPM drop is normal)","Tire pressure","Fuel color"], correct:1,
+      why:"Switching to each magneto should give a small, roughly even RPM drop. Too large a drop, a rough engine, or no drop at all points to an ignition fault to resolve before flight." },
+    { cat:"Systems", q:"On the electrical system, an ammeter showing a positive (charging) reading means…",
+      opts:["The battery is discharging","The alternator is supplying the loads and recharging the battery","The alternator has failed","The starter is engaged"], correct:1,
+      why:"A positive indication shows the alternator is carrying the electrical load and topping up the battery; a persistent discharge (negative) warns of an alternator or bus problem." },
+
+    /* ---- Physiology ---- */
+    { cat:"Physiology", q:"Early signs of hypoxia often include…",
+      opts:["Sharpened judgment","Euphoria and impaired judgment, later cyanosis (bluish lips/fingertips)","Improved night vision","Lowered heart rate only"], correct:1,
+      why:"Insidiously, hypoxia can bring a false sense of well-being while judgment and coordination degrade; blue-tinged skin (cyanosis) and tunnel vision follow. Night vision suffers first, even at modest altitude." },
+    { cat:"Physiology", q:"At around 25,000 ft, a pilot's time of useful consciousness after losing pressurization is roughly…",
+      opts:["Over an hour","A few minutes","No limit","One second"], correct:1,
+      why:"TUC is only a few minutes at 25,000 ft and mere seconds above 40,000 ft — which is why an immediate emergency descent and oxygen are drilled for rapid decompression." },
+    { cat:"Physiology", q:"Sustained positive G-forces in a tight, high-speed maneuver can cause…",
+      opts:["Blood to pool in the head","Blood to drain from the head, leading to grey-out and then black-out","No physiological effect","Improved vision"], correct:1,
+      why:"Positive G pushes blood toward the feet; as it drains from the eyes and brain the pilot sees grey, then tunnel vision and black-out, and ultimately G-induced loss of consciousness (G-LOC)." },
+    { cat:"Physiology", q:"On climb, gas trapped in the stomach and intestines tends to…",
+      opts:["Contract painlessly","Expand as pressure drops, causing discomfort","Turn to liquid","Have no effect"], correct:1,
+      why:"By Boyle's law, trapped gas expands as ambient pressure falls with altitude, causing abdominal discomfort — worsened by carbonated drinks or gas-producing foods before flight." },
+
+    /* ---- ATP: IFR, transport & multi-engine ---- */
+    { cat:"IFR", q:"A precision approach differs from a non-precision approach in that it provides…",
+      opts:["Only lateral guidance","Both lateral and vertical (glideslope) guidance","No electronic guidance","Weather information"], correct:1,
+      why:"A precision approach (e.g. ILS) gives a glideslope for vertical guidance down to a Decision Altitude; a non-precision approach has only lateral guidance and a Minimum Descent Altitude." },
+    { cat:"IFR", q:"If the runway environment isn't in sight at the DA or MDA, the pilot must fly the…",
+      opts:["Same approach again immediately","Published missed-approach procedure","Aircraft straight into the ground","Downwind leg"], correct:1,
+      why:"Reaching the decision altitude/minimum descent altitude without the required visual references, the pilot executes the charted missed approach — climb, configure, and follow the published track." },
+    { cat:"IFR", q:"A SID and a STAR are, respectively…",
+      opts:["Two types of stall","A standard instrument departure route and a standard terminal arrival route","Radio codes","Weather products"], correct:1,
+      why:"SIDs streamline IFR departures and STARs streamline arrivals, packaging complex clearances into a single named, charted procedure to reduce workload and radio congestion." },
+    { cat:"IFR", q:"Under the IFR “1-2-3 rule,” an alternate airport must be filed unless, from 1 hour before to 1 hour after ETA, the ceiling is at least ______ and visibility at least ______.",
+      opts:["1,000 ft / 1 SM","2,000 ft / 3 SM","500 ft / 1 SM","5,000 ft / 5 SM"], correct:1,
+      why:"If the forecast within ±1 hour of arrival is at least 2,000-ft ceiling and 3 SM visibility, no alternate is required; otherwise you must file one that meets its own weather minimums." },
+    { cat:"Transport", q:"Aircraft approach categories (A, B, C, D) are based on…",
+      opts:["Maximum takeoff weight","1.3 times the stall speed in the landing configuration (VSO) — i.e., approach speed","Engine count","Wingspan"], correct:1,
+      why:"Category speed = 1.3 × VSO at max landing weight: Cat A under 91 kt, B 91–120, C 121–140, D 141–165. Faster categories need larger circling and obstacle areas on approaches." },
+    { cat:"Transport", q:"On touchdown, thrust reversers and ground spoilers are deployed to…",
+      opts:["Increase lift for a go-around","Decelerate the aircraft and dump lift so the wheels grip for braking","Steer the nosewheel","Pressurize the cabin"], correct:1,
+      why:"Ground spoilers spoil the wing's lift so weight settles on the wheels for effective braking, while reversers redirect engine thrust forward — together shortening the landing roll." },
+    { cat:"Transport", q:"An anti-skid braking system improves stopping on a slippery runway by…",
+      opts:["Locking the wheels firmly","Sensing and preventing wheel lockup to keep tires near maximum grip","Reversing the engines","Adding weight to the wheels"], correct:1,
+      why:"Like automotive ABS, anti-skid modulates brake pressure at each wheel to prevent the skidding that both lengthens stopping distance and can blow tires or cause loss of control." },
+    { cat:"Transport", q:"Runway braking-action reports use the terms…",
+      opts:["Fast, medium, slow","Good, medium, poor (and nil)","Green, amber, red","Dry, damp, flooded only"], correct:1,
+      why:"Braking action is reported as good, good-to-medium, medium, medium-to-poor, poor, or nil, letting crews assess a contaminated runway's friction against their performance data." },
+    { cat:"Multi-Engine", q:"A twin's published “single-engine service ceiling” is the density altitude at which it can still climb at about…",
+      opts:["500 ft/min on one engine","50 ft/min on one engine","1,000 ft/min on one engine","0 ft/min (level only)"], correct:1,
+      why:"With one engine out, climb performance is meager; the single-engine service ceiling (≈50 fpm) can be surprisingly low on a hot, high day — a critical number for terrain and go-around planning." },
+    { cat:"IFR", q:"“Known icing conditions” for flight-planning purposes generally means…",
+      opts:["Any cold day","Visible moisture (cloud or precipitation) at temperatures at or below freezing","Only freezing rain","Frost on the ground"], correct:1,
+      why:"Where visible moisture meets freezing temperatures, structural ice can form. Dispatching into forecast known icing without approved anti-/de-ice equipment is prohibited and hazardous." },
+    { cat:"Navigation", q:"One nautical mile is approximately…",
+      opts:["5,280 feet","6,076 feet","3,281 feet","10,000 feet"], correct:1,
+      why:"A nautical mile is about 6,076 feet — roughly 1.15 statute miles (5,280 ft) — because it equals one minute of latitude. Aviation uses nautical miles and knots for exactly this tie to the chart." }
+  ];
+
+  const RANKS = [
+    { min:0.00, name:"Ground School Rookie", desc:"A hard test, made harder by the clock — don't be discouraged. Study the debrief and run it back." },
+    { min:0.45, name:"Student Pilot",        desc:"The fundamentals are taking hold. More reps and the finer points will click into place." },
+    { min:0.62, name:"Private Pilot",        desc:"Solid, well-rounded airmanship — and you kept your head as the pressure built." },
+    { min:0.78, name:"Commercial Aviator",   desc:"Sharp, current, and composed under time pressure. Only the real curveballs slipped past." },
+    { min:0.90, name:"Airline Captain · ATP",desc:"Exceptional command of the material and cool nerves against the clock. Cleared for takeoff." }
+  ];
+
+  // ---- Difficulty tiers: each subject's minimum rating to appear (1=Private, 2=Commercial, 3=ATP) ----
+  const TIER = {
+    "Aerodynamics":1,"Control":1,"Navigation":1,"Instruments":1,"Weather":1,"Radiotelephony":1,
+    "Airspace / Regs":1,"Operations":1,"Airports":1,"Human Factors":1,"Emergencies":1,
+    "Risk Management":1,"Decision Making":1,"History":1,
+    "Performance":2,"Flight Mechanics":2,"Systems":2,"Physiology":2,"Physics":2,"ATC":2,
+    "High-Altitude":3,"Multi-Engine":3,"IFR":3,"Transport":3
+  };
+  const LEVELS = [
+    { key:"private",    name:"PRIVATE",    max:1, blurb:"Foundational airmanship — the private-pilot knowledge core." },
+    { key:"commercial", name:"COMMERCIAL", max:2, blurb:"Adds deeper systems, performance, flight mechanics and physiology." },
+    { key:"atp",        name:"ATP",        max:3, blurb:"The full syllabus — high-altitude, multi-engine and IFR included." }
+  ];
+  let difficulty = LEVELS[1]; // default: Commercial
+  function poolFor(diff){ return QUESTIONS.filter(q => (TIER[q.cat]||1) <= diff.max); }
+
+  // ---- Additional-study references (authoritative FAA sources), keyed by subject ----
+  const FAA_LIB = "https://www.faa.gov/regulations_policies/handbooks_manuals/aviation";
+  const REFS = {
+    "Aerodynamics":"Pilot's Handbook of Aeronautical Knowledge (PHAK), Ch. 5 — Aerodynamics of Flight",
+    "Flight Mechanics":"PHAK Ch. 5–6, and the Airplane Flying Handbook (FAA-H-8083-3)",
+    "Control":"PHAK Ch. 6 — Flight Controls",
+    "Performance":"PHAK Ch. 11 — Aircraft Performance",
+    "High-Altitude":"Airplane Flying Handbook, Ch. 11 — Transition to Jet-Powered Airplanes",
+    "Multi-Engine":"Airplane Flying Handbook, Ch. 13 — Transition to Multiengine Airplanes",
+    "Instruments":"PHAK Ch. 8 — Flight Instruments; Instrument Flying Handbook (FAA-H-8083-15)",
+    "Navigation":"PHAK Ch. 16 — Navigation",
+    "Weather":"FAA Aviation Weather Handbook (FAA-H-8083-28); PHAK Ch. 12–13",
+    "Systems":"PHAK Ch. 7 — Aircraft Systems",
+    "Airspace / Regs":"FAR/AIM (14 CFR & the AIM); PHAK Ch. 15 — Airspace",
+    "Operations":"Aeronautical Information Manual (AIM); Airplane Flying Handbook",
+    "Airports":"PHAK Ch. 14 — Airport Operations; AIM Ch. 2",
+    "Human Factors":"PHAK Ch. 2 (ADM) & Ch. 17 — Aeromedical Factors",
+    "Physiology":"PHAK Ch. 17 — Aeromedical Factors",
+    "Risk Management":"FAA Risk Management Handbook (FAA-H-8083-2); PHAK Ch. 2",
+    "Decision Making":"PHAK Ch. 2 — Aeronautical Decision-Making; Risk Management Handbook",
+    "Emergencies":"Airplane Flying Handbook, Ch. 18 — Emergency Procedures; AIM Ch. 6",
+    "IFR":"Instrument Flying Handbook (FAA-H-8083-15) & Instrument Procedures Handbook (FAA-H-8083-16)",
+    "ATC":"Aeronautical Information Manual (AIM), Ch. 4 & the Pilot/Controller Glossary",
+    "Transport":"Airplane Flying Handbook, Ch. 11; type-specific operating manuals",
+    "Radiotelephony":"AIM Ch. 4 & the Pilot/Controller Glossary",
+    "Physics":"PHAK Ch. 5 — Aerodynamics of Flight",
+    "History":"Smithsonian National Air and Space Museum"
+  };
+  function refFor(cat){
+    return {
+      label: REFS[cat] || "FAA Pilot's Handbook of Aeronautical Knowledge (FAA-H-8083-25)",
+      url: cat==="History" ? "https://airandspace.si.edu" : FAA_LIB
+    };
+  }
+
+  const KEYS = ["A","B","C","D"];
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const body = document.getElementById("body");
+  const bar = document.getElementById("bar");
+  const stripLabel = document.getElementById("stripLabel");
+  const stripCount = document.getElementById("stripCount");
+  const tail = document.getElementById("tail");
+  const panel = document.getElementById("panel");
+  const caution = document.getElementById("caution");
+  const sndBtn = document.getElementById("sndBtn");
+
+  let deck = [];
+  let idx = 0;
+  let answers = [];   // chosen ORIGINAL index, or null if timed out
+  let times = [];     // seconds taken to answer each question
+  let locked = false;
+
+  // ---- Sound ----
+  let soundOn = true, audioCtx = null;
+  function ac(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return audioCtx; }
+  function tone(freq,dur,type="square",vol=0.06){
+    if(!soundOn) return; const a=ac(); if(!a) return;
+    const o=a.createOscillator(), g=a.createGain();
+    o.type=type; o.frequency.value=freq; o.connect(g); g.connect(a.destination);
+    const t=a.currentTime; g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur);
+  }
+  // ---- Engine profiles: a different powerplant is dealt to each question ----
+  const DIVE_AT = Math.max(1, QUESTION_TIME - 5);  // build starts once 5s have elapsed
+  const ENGINE_PROFILES = [
+    { name:"PISTON",    osc:"sawtooth", baseF:70, detune:1.007, filt:520,  q:7, lfo:13,  depth:0.15,
+      diveF:3.4, diveFilt:3600, vol:0.06, volDive:0.13, lfoDive:26,
+      wind:0.0, windDive:0.14, windFc:500, windFcDive:2600 },
+    { name:"RADIAL",    osc:"sawtooth", baseF:48, detune:1.011, filt:440,  q:9, lfo:7.5, depth:0.30,
+      diveF:3.0, diveFilt:2800, vol:0.07, volDive:0.13, lfoDive:14,
+      wind:0.0, windDive:0.12, windFc:460, windFcDive:2200 },
+    { name:"TURBOPROP", osc:"sawtooth", baseF:60, detune:1.006, filt:760,  q:5, lfo:20,  depth:0.10,
+      diveF:3.6, diveFilt:4200, vol:0.05, volDive:0.12, lfoDive:40,
+      wind:0.0, windDive:0.13, windFc:600, windFcDive:3000,
+      whine:{ osc:"triangle", f:330, fDive:1.7, vol:0.03, volDive:0.065 } },
+    { name:"TURBOFAN",  osc:"triangle", baseF:92, detune:1.004, filt:1300, q:2, lfo:8,   depth:0.05,
+      diveF:2.6, diveFilt:5000, vol:0.05, volDive:0.14, lfoDive:6,
+      wind:0.04, windDive:0.20, windFc:700, windFcDive:3600,
+      whine:{ osc:"sine", f:520, fDive:1.9, vol:0.02, volDive:0.06 } },
+    { name:"HUEY",      osc:"sawtooth", baseF:44, detune:1.012, filt:430,  q:6, lfo:5.4, depth:0.18, rotor:true,
+      diveF:1.6, diveFilt:1600, vol:0.035, volDive:0.06, lfoDive:2,
+      wind:0.0, windDive:0.09, windFc:460, windFcDive:1800,
+      whine:{ osc:"triangle", f:430, fDive:1.25, vol:0.035, volDive:0.055 } },
+    { name:"WARBIRD V12", osc:"sawtooth", baseF:55, detune:1.009, filt:700, q:11, lfo:18, depth:0.16,
+      diveF:3.2, diveFilt:4000, vol:0.07, volDive:0.14, lfoDive:34,
+      wind:0.0, windDive:0.13, windFc:520, windFcDive:2800,
+      whine:{ osc:"sawtooth", f:110, fDive:2.6, vol:0.03, volDive:0.075 } }
+  ];
+  let curProfile = ENGINE_PROFILES[0];
+  function pickEngine(){ curProfile = ENGINE_PROFILES[(Math.random()*ENGINE_PROFILES.length)|0]; return curProfile; }
+
+  let eng = null;
+  function startEngine(){
+    if(!soundOn) return; const a=ac(); if(!a||eng) return;
+    const p=curProfile;
+    const o1=a.createOscillator(), o2=a.createOscillator();
+    o1.type=p.osc; o2.type=p.osc;
+    o1.frequency.value=p.baseF; o2.frequency.value=p.baseF*p.detune;
+    const filt=a.createBiquadFilter(); filt.type="lowpass"; filt.frequency.value=p.filt; filt.Q.value=p.q;
+    const trem=a.createGain(); trem.gain.value=0.82;         // steady level, modulated by LFO
+    const out=a.createGain();  out.gain.value=0;             // engine master volume
+    o1.connect(filt); o2.connect(filt); filt.connect(trem); trem.connect(out); out.connect(a.destination);
+    const lfo=a.createOscillator(); lfo.type=p.lfoType||"sine"; lfo.frequency.value=p.lfo;
+    const lg=a.createGain(); lg.gain.value=p.depth; lfo.connect(lg); lg.connect(trem.gain);
+    // wind rush: looping noise through a bandpass, grows with the dive
+    const nb=a.createBuffer(1,(a.sampleRate*2)|0,a.sampleRate);
+    const nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+    const noise=a.createBufferSource(); noise.buffer=nb; noise.loop=true;
+    const wbp=a.createBiquadFilter(); wbp.type="bandpass"; wbp.frequency.value=p.windFc; wbp.Q.value=0.6;
+    const wind=a.createGain(); wind.gain.value=p.wind;
+    noise.connect(wbp); wbp.connect(wind); wind.connect(a.destination);
+    // optional turbine whine
+    let whine=null, whineGain=null;
+    if(p.whine){
+      whine=a.createOscillator(); whine.type=p.whine.osc; whine.frequency.value=p.whine.f;
+      whineGain=a.createGain(); whineGain.gain.value=p.whine.vol;
+      whine.connect(whineGain); whineGain.connect(a.destination); whine.start();
+    }
+    o1.start(); o2.start(); lfo.start(); noise.start();
+    const t=a.currentTime; out.gain.setValueAtTime(0,t); out.gain.linearRampToValueAtTime(p.vol,t+0.2);
+    eng={o1,o2,filt,trem,out,lfo,lg,noise,wbp,wind,whine,whineGain,p};
+    if(p.rotor) startRotor(a,p);
+  }
+  // Impulsive two-blade rotor slap (Huey): a sharp low thwop + click fired on the beat,
+  // alternating strong/weak for the classic "whop-whop".
+  function startRotor(a,p){
+    const slapBus=a.createGain(); slapBus.gain.value=1; slapBus.connect(a.destination);
+    eng.slapBus=slapBus;
+    let beat=0;
+    const fire=()=>{
+      if(!eng||!eng.slapBus) return;
+      const t=a.currentTime, strong=(beat%2===0), amp=strong?0.6:0.32;
+      // body of the whop: a fast down-sweeping low sine with a razor-sharp attack
+      const o=a.createOscillator(); o.type="sine";
+      o.frequency.setValueAtTime(strong?74:66,t);
+      o.frequency.exponentialRampToValueAtTime(36,t+0.13);
+      const g=a.createGain();
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(amp,t+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+      o.connect(g); g.connect(slapBus); o.start(t); o.stop(t+0.22);
+      // slap transient: a brief filtered noise crack on the leading edge
+      const nlen=(a.sampleRate*0.05)|0, nb=a.createBuffer(1,nlen,a.sampleRate), nd=nb.getChannelData(0);
+      for(let i=0;i<nlen;i++) nd[i]=(Math.random()*2-1)*Math.pow(1-i/nlen,3);
+      const ns=a.createBufferSource(); ns.buffer=nb;
+      const nf=a.createBiquadFilter(); nf.type="bandpass"; nf.frequency.value=900; nf.Q.value=0.8;
+      const ng=a.createGain(); ng.gain.value=amp*0.35;
+      ns.connect(nf); nf.connect(ng); ng.connect(slapBus); ns.start(t);
+      beat++;
+    };
+    eng.rotorTimer=setInterval(fire, 1000/(p.lfo*2));   // *2 → blade-pass rate, interleaved strong/weak
+    fire();
+  }
+  function updateEngine(remain){
+    if(!eng){ if(soundOn && rafId) startEngine(); if(!eng) return; }
+    const a=ac(); if(!a) return; const now=a.currentTime; const p=eng.p;
+    let e=0;
+    if(remain<=DIVE_AT){ const t=Math.min(1,(DIVE_AT-remain)/DIVE_AT); e=t*t; }
+    const f   = p.baseF*(1+p.diveF*e);
+    const fc  = p.filt + p.diveFilt*e;
+    const vol = p.vol + (p.volDive-p.vol)*e;
+    const lfoRate = p.lfo + p.lfoDive*e;
+    const windVol = p.wind + (p.windDive-p.wind)*e;
+    const windFc  = p.windFc + p.windFcDive*e;
+    eng.o1.frequency.setTargetAtTime(f,now,0.03);
+    eng.o2.frequency.setTargetAtTime(f*p.detune,now,0.03);
+    eng.filt.frequency.setTargetAtTime(fc,now,0.05);
+    eng.out.gain.setTargetAtTime(vol,now,0.05);
+    eng.lfo.frequency.setTargetAtTime(lfoRate,now,0.08);
+    eng.wind.gain.setTargetAtTime(windVol,now,0.06);
+    eng.wbp.frequency.setTargetAtTime(windFc,now,0.06);
+    if(eng.whine){
+      eng.whine.frequency.setTargetAtTime(p.whine.f*(1+(p.whine.fDive-1)*e),now,0.05);
+      eng.whineGain.gain.setTargetAtTime(p.whine.vol+(p.whine.volDive-p.whine.vol)*e,now,0.06);
+    }
+  }
+  function stopEngine(fade=0.1){
+    stopHorn(Math.min(0.06,fade));
+    if(!eng) return; const a=ac(); const e=eng; eng=null; if(!a) return;
+    if(e.rotorTimer) clearInterval(e.rotorTimer);
+    try{
+      const now=a.currentTime, tc=Math.max(0.01,fade)/3, st=now+fade+0.06;
+      e.out.gain.cancelScheduledValues(now); e.out.gain.setTargetAtTime(0.0001,now,tc);
+      e.wind.gain.cancelScheduledValues(now); e.wind.gain.setTargetAtTime(0.0001,now,tc);
+      e.o1.stop(st); e.o2.stop(st); e.lfo.stop(st); e.noise.stop(st);
+      if(e.whine){ e.whineGain.gain.cancelScheduledValues(now); e.whineGain.gain.setTargetAtTime(0.0001,now,tc); e.whine.stop(st); }
+      if(e.slapBus){ e.slapBus.gain.cancelScheduledValues(now); e.slapBus.gain.setTargetAtTime(0.0001,now,tc); }
+    }catch(_){}
+  }
+  // Stall horn: harsh beating square tone, blares in the final seconds.
+  let horn=null;
+  function startHorn(){
+    if(!soundOn||horn) return; const a=ac(); if(!a) return;
+    const o1=a.createOscillator(), o2=a.createOscillator();
+    o1.type="square"; o2.type="square";
+    o1.frequency.value=880; o2.frequency.value=884;   // slight beat = harsher
+    const g=a.createGain(); g.gain.value=0;
+    o1.connect(g); o2.connect(g); g.connect(a.destination);
+    o1.start(); o2.start();
+    const t=a.currentTime; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.075,t+0.04);
+    horn={o1,o2,g};
+  }
+  function stopHorn(fade=0.05){
+    if(!horn) return; const a=ac(); const h=horn; horn=null; if(!a) return;
+    try{ const now=a.currentTime; h.g.gain.cancelScheduledValues(now);
+      h.g.gain.setTargetAtTime(0.0001,now,Math.max(0.01,fade)/3);
+      const st=now+fade+0.05; h.o1.stop(st); h.o2.stop(st);
+    }catch(_){}
+  }
+  // Recovery whoosh: a downward wind-sweep — pulling out of the dive.
+  function whoosh(){
+    if(!soundOn) return; const a=ac(); if(!a) return; const now=a.currentTime;
+    const len=0.6, nb=a.createBuffer(1,(a.sampleRate*len)|0,a.sampleRate);
+    const d=nb.getChannelData(0); for(let i=0;i<d.length;i++){ const env=Math.sin(Math.PI*i/d.length); d[i]=(Math.random()*2-1)*env; }
+    const src=a.createBufferSource(); src.buffer=nb;
+    const bp=a.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=0.8;
+    bp.frequency.setValueAtTime(2000,now); bp.frequency.exponentialRampToValueAtTime(320,now+0.55);
+    const g=a.createGain();
+    g.gain.setValueAtTime(0.0001,now); g.gain.linearRampToValueAtTime(0.15,now+0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+0.6);
+    src.connect(bp); bp.connect(g); g.connect(a.destination); src.start(now); src.stop(now+0.62);
+  }
+  function crash(){
+    stopEngine(0.02);                           // engine cuts at impact
+    if(!soundOn) return; const a=ac(); if(!a) return; const now=a.currentTime;
+    // impact: filtered noise burst
+    const len=1.2, buf=a.createBuffer(1, (a.sampleRate*len)|0, a.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++){ const env=Math.pow(1-i/d.length,1.7); d[i]=(Math.random()*2-1)*env; }
+    const src=a.createBufferSource(); src.buffer=buf;
+    const lp=a.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1400;
+    const ng=a.createGain(); ng.gain.value=0.55;
+    src.connect(lp); lp.connect(ng); ng.connect(a.destination); src.start(now);
+    // low boom sweeping down
+    const bo=a.createOscillator(), bg=a.createGain();
+    bo.type="sine"; bo.frequency.setValueAtTime(150,now); bo.frequency.exponentialRampToValueAtTime(34,now+0.95);
+    bg.gain.setValueAtTime(0.5,now); bg.gain.exponentialRampToValueAtTime(0.0001,now+1.05);
+    bo.connect(bg); bg.connect(a.destination); bo.start(now); bo.stop(now+1.1);
+  }
+  sndBtn.addEventListener("click",()=>{
+    soundOn=!soundOn; sndBtn.setAttribute("aria-pressed",String(soundOn));
+    sndBtn.textContent=(soundOn?"♪ SOUND":"♪ MUTED");
+    if(soundOn){ ac(); if(rafId) startEngine(); } else { stopEngine(0.05); }
+  });
+
+  function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+  function setStrip(label,done,total){ stripLabel.textContent=label; stripCount.textContent=done+" / "+total; bar.style.width=(total?(done/total*100):0)+"%"; }
+
+  // ---- Timer ----
+  const TR=19, TCIRC=2*Math.PI*TR;
+  let rafId=null, tStart=0, lastCeil=-1;
+  function clearStress(){
+    panel.classList.remove("shake","danger");
+    caution.classList.remove("show","reduced");
+  }
+  function stopTimer(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} clearStress(); }
+  function startTimer(){
+    lastCeil=-1; tStart=performance.now();
+    const ringEl=document.getElementById("tRing");
+    const numEl=document.getElementById("tNum");
+    if(!ringEl) return;
+    startEngine();
+    const loop=(now)=>{
+      const remain=Math.max(0, QUESTION_TIME-(now-tStart)/1000);
+      const frac=remain/QUESTION_TIME;
+      ringEl.setAttribute("stroke-dashoffset", (TCIRC*(1-frac)).toFixed(2));
+      const col = remain>8? "#41d3ff" : remain>5? "#ffb020" : "#ff5b6e";
+      ringEl.setAttribute("stroke", col);
+      numEl.style.color = col;
+      const ceil=Math.ceil(remain); numEl.textContent=ceil;
+
+      updateEngine(remain);
+      if(remain<=3 && remain>0) startHorn();
+
+      // stress escalation
+      if(remain<=8 && remain>0){
+        caution.classList.add("show"); if(reduceMotion) caution.classList.add("reduced");
+      } else caution.classList.remove("show","reduced");
+      if(remain<=5 && remain>0){ if(!reduceMotion) panel.classList.add("shake"); panel.classList.add("danger"); }
+      else { panel.classList.remove("shake","danger"); }
+
+      // pre-dive time-cue ticks (the dive engine covers the final 5s)
+      if(ceil!==lastCeil && remain<=8 && remain>5){
+        lastCeil=ceil; tone(560,0.05,"square",0.03);
+      }
+
+      if(remain<=0){ timeUp(); return; }
+      rafId=requestAnimationFrame(loop);
+    };
+    rafId=requestAnimationFrame(loop);
+  }
+
+  // ---- Screens ----
+  function renderStart(){
+    stopTimer(); stopEngine(0);
+    idx=0; answers=[]; times=[]; deck=[]; locked=false;
+    tail.textContent="STANDBY";
+    setStrip("PREFLIGHT",0,RUN_SIZE);
+    drawStart();
+  }
+  function drawStart(){
+    const p = poolFor(difficulty);
+    const runN = Math.min(RUN_SIZE, p.length);
+    const domains = new Set(p.map(q=>q.cat)).size;
+    const sel = LEVELS.map(l=>`<button class="lvl ${l.key===difficulty.key?"on":""}" data-k="${l.key}">${l.name}</button>`).join("");
+    body.innerHTML = `
+      <div class="hero">
+        <p class="kicker">Preflight Briefing</p>
+        <h1>How high is your<br>aviation IQ?</h1>
+        <p class="lede">Choose a rating, then fly ${runN} questions drawn at random from the ${p.length}-question ${difficulty.name} pool. Questions and answers reshuffle every run.</p>
+        <div class="levelsel" role="group" aria-label="Difficulty">${sel}</div>
+        <p class="lvlblurb">${difficulty.blurb}</p>
+        <div class="warnnote">⏱ ${QUESTION_TIME}s per question. Cruise for the first 5s — then the engine and wind wind up into a dive, a stall horn blares in the final 3s, and zero means a crash (scored as missed). Answer in time for a recovery pull-out. Sound on for the full effect.</div>
+        <div class="specs">
+          <div><div class="n">${runN}</div><div class="l">Questions</div></div>
+          <div><div class="n">${domains}</div><div class="l">Domains</div></div>
+          <div><div class="n">${QUESTION_TIME}s</div><div class="l">Per Q</div></div>
+        </div>
+        <button class="btn" id="startBtn">Begin Taxi ▸</button>
+      </div>`;
+    body.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click",()=>{
+      difficulty = LEVELS.find(l=>l.key===b.dataset.k) || difficulty;
+      drawStart();
+    }));
+    const sb=document.getElementById("startBtn");
+    sb.addEventListener("click",()=>{ ac(); beginRun(); });
+    sb.focus();
+  }
+  function beginRun(){
+    const p = poolFor(difficulty);
+    deck = shuffle(p).slice(0, Math.min(RUN_SIZE, p.length));
+    idx=0; answers=[]; times=[]; locked=false;
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    locked=false;
+    const item=deck[idx];
+    item._order=shuffle(item.opts.map((_,i)=>i));
+    pickEngine();
+    tail.textContent="IN FLIGHT";
+    setStrip("QUESTION",idx,deck.length);
+    const optsHtml=item._order.map((orig,pos)=>`
+      <button class="opt" data-orig="${orig}">
+        <span class="key">${KEYS[pos]}</span>
+        <span class="txt">${item.opts[orig]}</span>
+      </button>`).join("");
+    body.innerHTML = `
+      <div class="qmeta">
+        <span class="cat">${item.cat} <span class="eng">◉ ${curProfile.name}</span></span>
+        <span class="mid">Q${String(idx+1).padStart(2,"0")} / ${String(deck.length).padStart(2,"0")}</span>
+        <div class="timer" id="timer" aria-label="time remaining">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="${TR}" fill="none" stroke="#0a1622" stroke-width="4"/>
+            <circle id="tRing" cx="22" cy="22" r="${TR}" fill="none" stroke="#41d3ff" stroke-width="4"
+              stroke-linecap="round" stroke-dasharray="${TCIRC.toFixed(2)}" stroke-dashoffset="0"/>
+          </svg>
+          <span class="tnum" id="tNum">${QUESTION_TIME}</span>
+        </div>
+      </div>
+      <p class="question">${item.q}</p>
+      <div class="options" id="options">${optsHtml}</div>
+      <div id="afterbox"></div>
+      <div class="actions hidden" id="actions">
+        <button class="btn" id="nextBtn">${idx===deck.length-1?"See Results ▸":"Next ▸"}</button>
+      </div>`;
+    body.querySelectorAll(".opt").forEach(btn=>{
+      btn.addEventListener("click",()=>choose(parseInt(btn.dataset.orig,10)));
+    });
+    startTimer();
+  }
+
+  function reveal(chosen){
+    const item=deck[idx];
+    answers[idx]=chosen; // may be null
+    const optButtons=body.querySelectorAll(".opt");
+    optButtons.forEach(btn=>{
+      const orig=parseInt(btn.dataset.orig,10);
+      btn.disabled=true;
+      if(orig===item.correct) btn.classList.add("correct");
+      else if(orig===chosen) btn.classList.add("wrong");
+      else btn.classList.add("dim");
+    });
+    const good = chosen===item.correct;
+    const timedOut = chosen===null;
+    const after=document.getElementById("afterbox");
+    const tag = good ? "✓ Correct" : timedOut ? "⏱ Time expired" : "✗ Not quite";
+    after.innerHTML = `
+      <div class="explain ${good?"ok":"no"}">
+        <span class="tag">${tag}</span>
+        ${item.why}
+      </div>`;
+    const actions=document.getElementById("actions");
+    actions.classList.remove("hidden");
+    const nextBtn=document.getElementById("nextBtn");
+    nextBtn.addEventListener("click",advance);
+    nextBtn.focus();
+    setStrip("QUESTION",idx+1,deck.length);
+  }
+
+  function choose(origChoice){
+    if(locked) return; locked=true;
+    times[idx] = (performance.now()-tStart)/1000;
+    stopTimer(); stopEngine(0.12);
+    whoosh();  // pull out of the dive
+    tone(origChoice===deck[idx].correct?760:300,0.09,"square",0.05);
+    reveal(origChoice);
+  }
+  function timeUp(){
+    if(locked) return; locked=true; times[idx]=QUESTION_TIME; stopTimer(); clearStress(); crash();
+    reveal(null);
+  }
+  function advance(){
+    if(idx<deck.length-1){ idx++; renderQuestion(); }
+    else renderResult();
+  }
+
+  function renderResult(){
+    stopTimer(); stopEngine(0.15);
+    const total=deck.length;
+    let score=0, timeouts=0;
+    const cats={};
+    deck.forEach((item,i)=>{
+      const good=answers[i]===item.correct;
+      if(good) score++;
+      if(answers[i]===null||answers[i]===undefined) timeouts++;
+      const c=cats[item.cat]||(cats[item.cat]={right:0,total:0});
+      c.total++; if(good) c.right++;
+    });
+    const frac=score/total, pct=Math.round(frac*100);
+    let rank=RANKS[0]; for(const r of RANKS){ if(frac>=r.min) rank=r; }
+    tail.textContent="LANDED";
+    setStrip("DEBRIEF",total,total);
+
+    const R=80,CIRC=2*Math.PI*R,dash=frac*CIRC;
+    const col=frac>=0.78?"var(--green)":frac>=0.5?"var(--cyan)":"var(--amber)";
+    const chips=Object.keys(cats).sort().map(c=>{
+      const {right,total}=cats[c];
+      const cls=right===total?"hi":right===0?"lo":"";
+      return `<span class="chip ${cls}">${c} <b>${right}/${total}</b></span>`;
+    }).join("");
+    const rows=deck.map((item,i)=>{
+      const good=answers[i]===item.correct;
+      const to=answers[i]===null||answers[i]===undefined;
+      return `<div class="br-row">
+        <span class="mark ${good?"y":"n"}">${good?"✓":(to?"⏱":"✗")}</span>
+        <span class="q">Q${i+1}. ${item.q}
+          ${good?"":`<span class="a">Correct: ${item.opts[item.correct]}</span>`}
+        </span></div>`;
+    }).join("");
+
+    body.innerHTML = `
+      <div class="hero">
+        <p class="kicker">Post-Flight Debrief · ${difficulty.name}</p>
+        <div class="gauge">
+          <svg width="190" height="190" viewBox="0 0 190 190">
+            <circle cx="95" cy="95" r="${R}" fill="none" stroke="#0a1622" stroke-width="12"/>
+            <circle cx="95" cy="95" r="${R}" fill="none" stroke="${col}" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="${dash} ${CIRC}"
+              style="filter:drop-shadow(0 0 8px ${col});transition:stroke-dasharray .9s cubic-bezier(.4,0,.2,1)"/>
+          </svg>
+          <div class="val"><span class="pct" style="color:${col}">${pct}%</span><span class="of">${score} / ${total} correct</span></div>
+        </div>
+        <div class="rank"><span class="rankwing">✈</span> ${rank.name}</div>
+        <p class="rankdesc">${rank.desc}</p>
+        ${timeouts>0?`<p class="tmonote">Ran out of time on <b>${timeouts}</b> question${timeouts>1?"s":""} — decision speed counts too.</p>`:``}
+      </div>
+      <div class="catscores">${chips}</div>
+      <div class="breakdown">${rows}</div>
+      <div class="endbtns">
+        ${flaggedList().length?`<button class="btn ghost" id="reviewBtn">Review ${flaggedList().length} ▸</button>`:`<span class="cleanmark">✓ Clean sweep — nothing to review</span>`}
+        <button class="btn" id="againBtn">Fly It Again ▸</button>
+      </div>`;
+    const rv=document.getElementById("reviewBtn");
+    if(rv) rv.addEventListener("click", renderReview);
+    document.getElementById("againBtn").addEventListener("click",renderStart);
+    (rv||document.getElementById("againBtn")).focus();
+    requestAnimationFrame(()=>{
+      const c=body.querySelector("circle:last-of-type");
+      if(c){ c.setAttribute("stroke-dasharray","0 "+CIRC); requestAnimationFrame(()=>c.setAttribute("stroke-dasharray",dash+" "+CIRC)); }
+    });
+  }
+
+  // Questions missed, timed out on, or answered slower than the threshold.
+  function flaggedList(){
+    return deck.map((item,i)=>({item,i})).filter(({item,i})=>{
+      const good = answers[i]===item.correct;
+      const slow = (times[i]!=null) && times[i] > SLOW_THRESHOLD;
+      return !good || slow;
+    });
+  }
+
+  let reviewList = [], reviewPos = 0;
+  function renderReview(){
+    stopTimer(); stopEngine(0);
+    reviewList = flaggedList();
+    reviewPos = 0;
+    drawReview();
+  }
+  function drawReview(){
+    const list = reviewList;
+    if(!list.length){ renderResult(); return; }
+    reviewPos = Math.max(0, Math.min(reviewPos, list.length-1));
+    const { item, i } = list[reviewPos];
+    const last = reviewPos === list.length-1;
+    tail.textContent="REVIEW";
+    setStrip("REVIEW", reviewPos+1, list.length);
+    const chosen = answers[i];
+    const good = chosen===item.correct;
+    const to = chosen==null;
+    const t = times[i];
+    const reason = to ? "TIMED OUT" : (!good ? "MISSED" : `SLOW · ${t.toFixed(1)}s`);
+    const badge = (to||!good) ? "bad" : "slow";
+    const ref = refFor(item.cat);
+    const opts = item.opts.map((o,oi)=>{
+      let cls="rv-opt";
+      if(oi===item.correct) cls+=" correct";
+      else if(oi===chosen && !good) cls+=" wrong";
+      return `<div class="${cls}"><span class="rv-key">${KEYS[oi]}</span><span>${o}</span></div>`;
+    }).join("");
+    body.innerHTML = `
+      <div class="rvhead">
+        <p class="kicker">Debrief · Review ${reviewPos+1} / ${list.length}</p>
+        <p class="lvlblurb">Missed, timed out, or slower than ${SLOW_THRESHOLD}s — study the answer, then continue.</p>
+      </div>
+      <div class="rvcard">
+        <div class="rvmeta"><span class="cat">${item.cat}</span><span class="rvtag ${badge}">${reason}</span></div>
+        <div class="rvq">${item.q}</div>
+        <div class="rvopts">${opts}</div>
+        <div class="explain ok"><span class="tag">Why</span>${item.why}</div>
+        <div class="rvstudy">
+          <span class="tag">Study further</span>
+          ${ref.label} · <a href="${ref.url}" target="_blank" rel="noopener noreferrer">FAA library ↗</a>
+        </div>
+      </div>
+      <div class="endbtns">
+        <button class="btn ghost" id="rvBack">◂ Debrief</button>
+        ${reviewPos>0?`<button class="btn ghost" id="rvPrev">Prev</button>`:``}
+        <button class="btn" id="nextBtn">${last?"Finish ▸":"Next ▸"}</button>
+      </div>`;
+    document.getElementById("rvBack").addEventListener("click", renderResult);
+    const pv=document.getElementById("rvPrev");
+    if(pv) pv.addEventListener("click", ()=>{ reviewPos--; drawReview(); });
+    document.getElementById("nextBtn").addEventListener("click", ()=>{
+      if(last){ renderResult(); } else { reviewPos++; drawReview(); }
+    });
+    document.getElementById("nextBtn").focus();
+  }
+
+  window.addEventListener("keydown",(e)=>{
+    const opts=body.querySelectorAll(".opt");
+    if(opts.length && !locked){
+      let pos=-1;
+      if(e.key>="1"&&e.key<="4") pos=+e.key-1;
+      const up=e.key.toUpperCase();
+      if(["A","B","C","D"].includes(up)) pos=["A","B","C","D"].indexOf(up);
+      if(pos>=0&&pos<opts.length){ e.preventDefault(); opts[pos].click(); return; }
+    }
+    if(e.key==="Enter"||e.key==="ArrowRight"){
+      const next=document.getElementById("nextBtn");
+      if(next){ e.preventDefault(); next.click(); }
+    }
+    if(e.key==="ArrowLeft"){
+      const prev=document.getElementById("rvPrev");
+      if(prev){ e.preventDefault(); prev.click(); }
+    }
+  });
+
+  renderStart();
+})();
+</script>
