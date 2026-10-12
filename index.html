@@ -205,7 +205,21 @@
   .explain.ok .tag{color:var(--green);}
   .explain.no .tag{color:var(--red);}
 
-  .actions{display:flex;justify-content:flex-end;margin-top:20px;}
+  .actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;}
+  .btn.flag{background:transparent;color:var(--amber);border-color:#5a4a1e;box-shadow:none;}
+  .btn.flag:hover{filter:none;border-color:var(--amber);background:rgba(255,176,32,.1);}
+  .btn.flag.on{background:var(--amber);color:#1a0f00;border-color:var(--amber);}
+  .btn.ghost.danger{color:var(--red);border-color:#5a2730;}
+  .btn.ghost.danger:hover{border-color:var(--red);background:rgba(255,91,110,.08);}
+  .linkbtn{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--amber);background:transparent;border:none;cursor:pointer;padding:8px;text-decoration:underline;text-underline-offset:3px;}
+  .linkbtn:hover{color:#ffd27a;}
+  .linkbtn.danger{color:var(--red);}
+  .linkbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+  .flaglbl{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px;}
+  .flagnote,.reportbox{width:100%;box-sizing:border-box;background:#0a1622;color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical;}
+  .flagnote:focus,.reportbox:focus{outline:none;border-color:var(--cyan);}
+  .reportbox{margin:0 0 16px;color:var(--ink-dim);}
+  .flagrow{text-align:right;margin-top:6px;}
   .btn{
     font-family:var(--disp);font-weight:600;letter-spacing:.06em;
     text-transform:uppercase;font-size:14px;
@@ -1913,6 +1927,32 @@
     saveRecent(recent);
     return shuffle(chosen);   // randomize presentation order within the run
   }
+
+  // ---- Flagging: mark questions as wrong/unclear, note the issue, export the list ----
+  const FLAG_KEY = "aviationiq_flags_v1";
+  function loadFlags(){ try{ return JSON.parse(localStorage.getItem(FLAG_KEY)||"[]")||[]; }catch(e){ return []; } }
+  function saveFlags(a){ try{ localStorage.setItem(FLAG_KEY, JSON.stringify(a)); }catch(e){} }
+  let flags = loadFlags();
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function isFlagged(item){ return flags.some(f=>f.q===item.q); }
+  function toggleFlag(item){
+    const i = flags.findIndex(f=>f.q===item.q);
+    if(i>=0) flags.splice(i,1);
+    else flags.push({ q:item.q, cat:item.cat, answer:item.opts[item.correct], note:"" });
+    saveFlags(flags);
+  }
+  function setFlagNote(q, note){ const f=flags.find(x=>x.q===q); if(f){ f.note=note; saveFlags(flags); } }
+  function flagReport(){
+    const out = ["AVIATION IQ CHECK — FLAGGED QUESTIONS ("+flags.length+")",
+                 "Generated: "+new Date().toLocaleString(), ""];
+    flags.forEach((f,i)=>{
+      out.push((i+1)+". ["+f.cat+"] "+f.q);
+      out.push("   Listed answer: "+f.answer);
+      out.push("   Issue: "+(f.note && f.note.trim() ? f.note.trim() : "(no note)"));
+      out.push("");
+    });
+    return out.join("\n");
+  }
   function setStrip(label,done,total){ stripLabel.textContent=label; stripCount.textContent=done+" / "+total; bar.style.width=(total?(done/total*100):0)+"%"; }
 
   // ---- Timer ----
@@ -1986,6 +2026,7 @@
           <div><div class="n">${QUESTION_TIME}s</div><div class="l">Per Q</div></div>
         </div>
         <button class="btn" id="startBtn">Begin Taxi ▸</button>
+        ${flags.length?`<div><button class="linkbtn" id="flagsBtn">⚑ ${flags.length} flagged issue${flags.length>1?"s":""} — view / export</button></div>`:``}
       </div>`;
     body.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click",()=>{
       difficulty = LEVELS.find(l=>l.key===b.dataset.k) || difficulty;
@@ -1993,6 +2034,8 @@
     }));
     const sb=document.getElementById("startBtn");
     sb.addEventListener("click",()=>{ ac(); beginRun(); });
+    const fb=document.getElementById("flagsBtn");
+    if(fb) fb.addEventListener("click", renderFlags);
     sb.focus();
   }
   function beginRun(){
@@ -2031,11 +2074,16 @@
       <div class="options" id="options">${optsHtml}</div>
       <div id="afterbox"></div>
       <div class="actions hidden" id="actions">
+        <button class="btn flag" id="flagBtn">⚑ Flag issue</button>
         <button class="btn" id="nextBtn">${idx===deck.length-1?"See Results ▸":"Next ▸"}</button>
       </div>`;
     body.querySelectorAll(".opt").forEach(btn=>{
       btn.addEventListener("click",()=>choose(parseInt(btn.dataset.orig,10)));
     });
+    const flagBtn=document.getElementById("flagBtn");
+    const syncFlag=()=>{ const on=isFlagged(item); flagBtn.classList.toggle("on",on); flagBtn.textContent = on?"⚑ Flagged":"⚑ Flag issue"; };
+    flagBtn.addEventListener("click",()=>{ toggleFlag(item); syncFlag(); });
+    syncFlag();
     startTimer();
   }
 
@@ -2138,10 +2186,13 @@
       <div class="breakdown">${rows}</div>
       <div class="endbtns">
         ${flaggedList().length?`<button class="btn ghost" id="reviewBtn">Review ${flaggedList().length} ▸</button>`:`<span class="cleanmark">✓ Clean sweep — nothing to review</span>`}
+        ${flags.length?`<button class="btn flag" id="flagsBtn">⚑ Flagged ${flags.length}</button>`:``}
         <button class="btn" id="againBtn">Fly It Again ▸</button>
       </div>`;
     const rv=document.getElementById("reviewBtn");
     if(rv) rv.addEventListener("click", renderReview);
+    const fb=document.getElementById("flagsBtn");
+    if(fb) fb.addEventListener("click", renderFlags);
     document.getElementById("againBtn").addEventListener("click",renderStart);
     (rv||document.getElementById("againBtn")).focus();
     requestAnimationFrame(()=>{
@@ -2204,10 +2255,15 @@
       </div>
       <div class="endbtns">
         <button class="btn ghost" id="rvBack">◂ Debrief</button>
+        <button class="btn flag" id="rvFlag">⚑ Flag issue</button>
         ${reviewPos>0?`<button class="btn ghost" id="rvPrev">Prev</button>`:``}
         <button class="btn" id="nextBtn">${last?"Finish ▸":"Next ▸"}</button>
       </div>`;
     document.getElementById("rvBack").addEventListener("click", renderResult);
+    const rvFlag=document.getElementById("rvFlag");
+    const syncRvFlag=()=>{ const on=isFlagged(item); rvFlag.classList.toggle("on",on); rvFlag.textContent = on?"⚑ Flagged":"⚑ Flag issue"; };
+    rvFlag.addEventListener("click",()=>{ toggleFlag(item); syncRvFlag(); });
+    syncRvFlag();
     const pv=document.getElementById("rvPrev");
     if(pv) pv.addEventListener("click", ()=>{ reviewPos--; drawReview(); });
     document.getElementById("nextBtn").addEventListener("click", ()=>{
@@ -2216,7 +2272,85 @@
     document.getElementById("nextBtn").focus();
   }
 
+  function renderFlags(){
+    stopTimer(); stopEngine(0);
+    tail.textContent="FLAGS";
+    setStrip("FLAGGED", flags.length, Math.max(flags.length,1));
+    if(!flags.length){
+      body.innerHTML = `
+        <div class="rvhead">
+          <p class="kicker">Flagged Questions</p>
+          <h2 class="rvtitle">Nothing flagged</h2>
+          <p class="lvlblurb">While taking the test (or in the review), tap <b>⚑ Flag issue</b> on any question that's wrong or unclear. Flagged ones collect here to export.</p>
+        </div>
+        <div class="center"><button class="btn" id="flagsBack">◂ Back</button></div>`;
+      document.getElementById("flagsBack").addEventListener("click", renderStart);
+      document.getElementById("flagsBack").focus();
+      return;
+    }
+    const cards = flags.map((f)=>`
+      <div class="rvcard">
+        <div class="rvmeta"><span class="cat">${esc(f.cat)}</span><span class="rvtag bad">FLAGGED</span></div>
+        <div class="rvq">${esc(f.q)}</div>
+        <div class="rvopts"><div class="rv-opt correct"><span class="rv-key">✓</span><span>${esc(f.answer)}</span></div></div>
+        <label class="flaglbl">What's wrong? (optional)</label>
+        <textarea class="flagnote" data-q="${encodeURIComponent(f.q)}" rows="2" placeholder="e.g. option B is also correct · wording is ambiguous · figure is outdated">${esc(f.note||"")}</textarea>
+        <div class="flagrow"><button class="linkbtn danger" data-unflag="${encodeURIComponent(f.q)}">Remove flag</button></div>
+      </div>`).join("");
+    body.innerHTML = `
+      <div class="rvhead">
+        <p class="kicker">Flagged Questions</p>
+        <h2 class="rvtitle">${flags.length} flagged</h2>
+        <p class="lvlblurb">Add a note on what's wrong, then <b>Copy</b> or <b>Download</b> the report and send it to me — I'll fix or remove each one.</p>
+      </div>
+      <div class="reviewlist">${cards}</div>
+      <label class="flaglbl">Report (send me this)</label>
+      <textarea id="flagReport" class="reportbox" readonly rows="6"></textarea>
+      <div class="endbtns">
+        <button class="btn" id="copyFlags">Copy report</button>
+        <button class="btn ghost" id="dlFlags">Download</button>
+        <button class="btn ghost danger" id="clearFlags">Clear all</button>
+        <button class="btn ghost" id="flagsBack">◂ Back</button>
+      </div>`;
+    const reportBox=document.getElementById("flagReport");
+    const refresh=()=>{ reportBox.value = flagReport(); };
+    refresh();
+    body.querySelectorAll(".flagnote").forEach(t=>{
+      t.addEventListener("input",()=>{ setFlagNote(decodeURIComponent(t.dataset.q), t.value); refresh(); });
+    });
+    body.querySelectorAll("[data-unflag]").forEach(b=>{
+      b.addEventListener("click",()=>{
+        const q=decodeURIComponent(b.dataset.unflag);
+        const i=flags.findIndex(f=>f.q===q); if(i>=0){ flags.splice(i,1); saveFlags(flags); }
+        renderFlags();
+      });
+    });
+    document.getElementById("copyFlags").addEventListener("click",(e)=>{
+      const btn=e.currentTarget; reportBox.select();
+      const done=()=>{ btn.textContent="Copied ✓"; setTimeout(()=>btn.textContent="Copy report",1500); };
+      try{ navigator.clipboard.writeText(flagReport()).then(done,()=>{ try{document.execCommand("copy");}catch(_){} done(); }); }
+      catch(_){ try{document.execCommand("copy");}catch(e2){} done(); }
+    });
+    document.getElementById("dlFlags").addEventListener("click",()=>{
+      const blob=new Blob([flagReport()],{type:"text/plain"});
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+      a.download="aviation-iq-flags.txt"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    });
+    document.getElementById("clearFlags").addEventListener("click",(e)=>{
+      const btn=e.currentTarget;
+      if(btn.dataset.armed){ flags=[]; saveFlags(flags); renderFlags(); }
+      else { btn.dataset.armed="1"; btn.textContent="Tap again to clear all"; setTimeout(()=>{ if(btn){btn.dataset.armed="";btn.textContent="Clear all";} },2500); }
+    });
+    document.getElementById("flagsBack").addEventListener("click", renderStart);
+  }
+
   window.addEventListener("keydown",(e)=>{
+    if(e.target && (e.target.tagName==="TEXTAREA" || e.target.tagName==="INPUT")) return;
+    if(e.key==="f"||e.key==="F"){
+      const fb=document.getElementById("flagBtn")||document.getElementById("rvFlag");
+      if(fb && fb.offsetParent!==null){ e.preventDefault(); fb.click(); return; }
+    }
     const opts=body.querySelectorAll(".opt");
     if(opts.length && !locked){
       let pos=-1;
