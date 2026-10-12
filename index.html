@@ -2313,8 +2313,8 @@
         <p class="lvlblurb">Add a note on what's wrong, then tap <b>Send to owner</b> — it's delivered automatically. (Copy / Download are backups.)</p>
       </div>
       <div class="reviewlist">${cards}</div>
-      <label class="flaglbl">Your name or email (optional — so the owner can follow up)</label>
-      <input id="reporter" class="flaginput" type="text" placeholder="optional" autocomplete="off">
+      <label class="flaglbl">Your email (optional — so the owner can reply to you)</label>
+      <input id="reporter" class="flaginput" type="text" placeholder="you@example.com (optional)" autocomplete="off">
       <label class="flaglbl">Report</label>
       <textarea id="flagReport" class="reportbox" readonly rows="6"></textarea>
       <div id="sendStatus" class="sendstatus"></div>
@@ -2359,11 +2359,13 @@
       const btn=e.currentTarget, status=document.getElementById("sendStatus");
       const reporterEl=document.getElementById("reporter");
       const from=reporterEl ? reporterEl.value.trim() : "";
+      const payload={ message: flagReport(), _subject:"Aviation IQ — flagged questions" };
+      if(from){ if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(from)) payload.email=from; else payload.name=from; }
       btn.disabled=true; btn.textContent="Sending…"; status.className="sendstatus"; status.textContent="";
       fetch(FORM_ENDPOINT,{
         method:"POST",
         headers:{ "Content-Type":"application/json", "Accept":"application/json" },
-        body: JSON.stringify({ from: from||"(not given)", message: flagReport(), _subject:"Aviation IQ — flagged questions" })
+        body: JSON.stringify(payload)
       }).then(r=>{
         if(r.ok){ status.className="sendstatus ok"; status.textContent="✓ Sent to the owner — thank you!"; btn.textContent="Sent ✓"; }
         else { return r.json().then(d=>{ throw new Error((d&&d.errors&&d.errors[0]&&d.errors[0].message)||("HTTP "+r.status)); }); }
