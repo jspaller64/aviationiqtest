@@ -135,6 +135,9 @@
   .lvl.on{color:#04140b;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(65,211,255,.4);}
   .lvl:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
   .lvlblurb{font-size:12px;color:var(--ink-dim);margin:0 auto 20px;max-width:42ch;min-height:1.1em;}
+  .notice{font-size:13px;line-height:1.55;color:var(--ink-dim);border-left:3px solid var(--amber);background:rgba(255,176,32,.06);padding:11px 14px;border-radius:0 8px 8px 0;max-width:54ch;margin:0 auto 22px;text-align:left;}
+  .notice b{color:var(--amber);font-family:var(--disp);letter-spacing:.03em;}
+  .notice .fl{color:var(--amber);}
   .warnnote{
     font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--red);
     border:1px solid rgba(255,91,110,.35);border-radius:8px;
@@ -216,10 +219,14 @@
   .linkbtn.danger{color:var(--red);}
   .linkbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
   .flaglbl{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px;}
-  .flagnote,.reportbox{width:100%;box-sizing:border-box;background:#0a1622;color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical;}
-  .flagnote:focus,.reportbox:focus{outline:none;border-color:var(--cyan);}
-  .reportbox{margin:0 0 16px;color:var(--ink-dim);}
+  .flagnote,.reportbox,.flaginput{width:100%;box-sizing:border-box;background:#0a1622;color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical;}
+  .flagnote:focus,.reportbox:focus,.flaginput:focus{outline:none;border-color:var(--cyan);}
+  .flaginput{margin:0 0 14px;}
+  .reportbox{margin:0 0 10px;color:var(--ink-dim);}
   .flagrow{text-align:right;margin-top:6px;}
+  .sendstatus{font-family:var(--mono);font-size:11px;min-height:1.2em;margin:0 0 12px;text-align:center;}
+  .sendstatus.ok{color:var(--green);}
+  .sendstatus.err{color:var(--red);}
   .btn{
     font-family:var(--disp);font-weight:600;letter-spacing:.06em;
     text-transform:uppercase;font-size:14px;
@@ -1930,6 +1937,7 @@
 
   // ---- Flagging: mark questions as wrong/unclear, note the issue, export the list ----
   const FLAG_KEY = "aviationiq_flags_v1";
+  const FORM_ENDPOINT = "https://formspree.io/f/xljgwzqw";  // reports delivered here
   function loadFlags(){ try{ return JSON.parse(localStorage.getItem(FLAG_KEY)||"[]")||[]; }catch(e){ return []; } }
   function saveFlags(a){ try{ localStorage.setItem(FLAG_KEY, JSON.stringify(a)); }catch(e){} }
   let flags = loadFlags();
@@ -2020,6 +2028,7 @@
         <div class="levelsel" role="group" aria-label="Difficulty">${sel}</div>
         <p class="lvlblurb">${difficulty.blurb}</p>
         <div class="warnnote">⏱ ${QUESTION_TIME}s per question. Cruise for the first 5s — then the engine and wind wind up into a dive, a stall horn blares in the final 3s, and zero means a crash (scored as missed). Answer in time for a recovery pull-out. Sound on for the full effect.</div>
+        <div class="notice"><b>A note on accuracy.</b> With hundreds of questions in rotation, an occasional one may prove imperfect — dated, imprecise, or fairly open to debate. If a question still looks wrong after you've read the explanation, flag it with the <span class="fl">⚑</span> button and we'll review it, then refine or remove it as needed. Your sharp eye keeps this test better for every pilot who flies it next.</div>
         <div class="specs">
           <div><div class="n">${runN}</div><div class="l">Questions</div></div>
           <div><div class="n">${domains}</div><div class="l">Domains</div></div>
@@ -2301,13 +2310,17 @@
       <div class="rvhead">
         <p class="kicker">Flagged Questions</p>
         <h2 class="rvtitle">${flags.length} flagged</h2>
-        <p class="lvlblurb">Add a note on what's wrong, then <b>Copy</b> or <b>Download</b> the report and send it to me — I'll fix or remove each one.</p>
+        <p class="lvlblurb">Add a note on what's wrong, then tap <b>Send to owner</b> — it's delivered automatically. (Copy / Download are backups.)</p>
       </div>
       <div class="reviewlist">${cards}</div>
-      <label class="flaglbl">Report (send me this)</label>
+      <label class="flaglbl">Your name or email (optional — so the owner can follow up)</label>
+      <input id="reporter" class="flaginput" type="text" placeholder="optional" autocomplete="off">
+      <label class="flaglbl">Report</label>
       <textarea id="flagReport" class="reportbox" readonly rows="6"></textarea>
+      <div id="sendStatus" class="sendstatus"></div>
       <div class="endbtns">
-        <button class="btn" id="copyFlags">Copy report</button>
+        <button class="btn" id="sendFlags">Send to owner ▸</button>
+        <button class="btn ghost" id="copyFlags">Copy</button>
         <button class="btn ghost" id="dlFlags">Download</button>
         <button class="btn ghost danger" id="clearFlags">Clear all</button>
         <button class="btn ghost" id="flagsBack">◂ Back</button>
@@ -2341,6 +2354,24 @@
       const btn=e.currentTarget;
       if(btn.dataset.armed){ flags=[]; saveFlags(flags); renderFlags(); }
       else { btn.dataset.armed="1"; btn.textContent="Tap again to clear all"; setTimeout(()=>{ if(btn){btn.dataset.armed="";btn.textContent="Clear all";} },2500); }
+    });
+    document.getElementById("sendFlags").addEventListener("click",(e)=>{
+      const btn=e.currentTarget, status=document.getElementById("sendStatus");
+      const reporterEl=document.getElementById("reporter");
+      const from=reporterEl ? reporterEl.value.trim() : "";
+      btn.disabled=true; btn.textContent="Sending…"; status.className="sendstatus"; status.textContent="";
+      fetch(FORM_ENDPOINT,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+        body: JSON.stringify({ from: from||"(not given)", message: flagReport(), _subject:"Aviation IQ — flagged questions" })
+      }).then(r=>{
+        if(r.ok){ status.className="sendstatus ok"; status.textContent="✓ Sent to the owner — thank you!"; btn.textContent="Sent ✓"; }
+        else { return r.json().then(d=>{ throw new Error((d&&d.errors&&d.errors[0]&&d.errors[0].message)||("HTTP "+r.status)); }); }
+      }).catch(err=>{
+        status.className="sendstatus err";
+        status.textContent="Couldn't send ("+err.message+"). Please use Copy and send it to the owner manually.";
+        btn.disabled=false; btn.textContent="Send to owner ▸";
+      });
     });
     document.getElementById("flagsBack").addEventListener("click", renderStart);
   }
