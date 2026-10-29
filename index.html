@@ -8,7 +8,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
   :root{
+    /* base = night cockpit (dark) */
     --bg:#070c12;
+    --glow:#12212e;
     --panel:#0d1620;
     --panel-2:#101e2a;
     --edge:#1d3242;
@@ -19,15 +21,42 @@
     --green:#3ee08f;
     --amber:#ffb020;
     --red:#ff5b6e;
+    --inset:#0a1622;
+    --opt-hover:#12222f;
+    --strip-bg:rgba(6,12,18,.5);
+    --h1a:#eaf6ff; --h1b:#8fd4ef;
+    --flag-border:#5a4a1e;
+    --danger-border:#5a2730;
+    --panel-shadow:rgba(0,0,0,.55);
+    --on-ink:#04140b;
     --disp:"Chakra Petch", "Bahnschrift", sans-serif;
     --body:"IBM Plex Sans", system-ui, sans-serif;
     --mono:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  /* day cockpit (light) — used when the device is in light mode, unless dark is forced */
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#e9eef3; --glow:#dbe7f1; --panel:#ffffff; --panel-2:#f3f7fb;
+      --edge:#c2d2de; --edge-soft:#dde6ee; --ink:#102634; --ink-dim:#5a7183;
+      --cyan:#0b7aa3; --green:#1f9d5f; --amber:#b4700a; --red:#d8384a;
+      --inset:#e7eef4; --opt-hover:#eef5fb; --strip-bg:rgba(236,242,248,.75);
+      --h1a:#143449; --h1b:#1b7fa6; --flag-border:#e2c78c; --danger-border:#eab6bd;
+      --panel-shadow:rgba(20,45,70,.13); --on-ink:#ffffff;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#e9eef3; --glow:#dbe7f1; --panel:#ffffff; --panel-2:#f3f7fb;
+    --edge:#c2d2de; --edge-soft:#dde6ee; --ink:#102634; --ink-dim:#5a7183;
+    --cyan:#0b7aa3; --green:#1f9d5f; --amber:#b4700a; --red:#d8384a;
+    --inset:#e7eef4; --opt-hover:#eef5fb; --strip-bg:rgba(236,242,248,.75);
+    --h1a:#143449; --h1b:#1b7fa6; --flag-border:#e2c78c; --danger-border:#eab6bd;
+    --panel-shadow:rgba(20,45,70,.13); --on-ink:#ffffff;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;}
   body{
     background:
-      radial-gradient(1200px 600px at 50% -10%, #12212e 0%, rgba(18,33,46,0) 60%),
+      radial-gradient(1200px 600px at 50% -10%, var(--glow) 0%, rgba(18,33,46,0) 60%),
       var(--bg);
     color:var(--ink);
     font-family:var(--body);
@@ -67,7 +96,7 @@
     position:relative;
     background:linear-gradient(180deg,var(--panel-2),var(--panel));
     border:1px solid var(--edge); border-radius:16px;
-    box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(120,180,220,.06);
+    box-shadow:0 18px 50px var(--panel-shadow), inset 0 1px 0 rgba(120,180,220,.06);
     overflow:hidden;
   }
   .panel.shake{ animation:shake .32s infinite; }
@@ -88,7 +117,7 @@
     position:absolute; top:56px; left:50%; transform:translateX(-50%);
     z-index:8; display:none;
     font-family:var(--disp); font-weight:700; letter-spacing:.14em;
-    font-size:12px; text-transform:uppercase; color:#1a0f00;
+    font-size:12px; text-transform:uppercase; color:var(--on-ink);
     background:var(--amber); border:1px solid #ffd27a;
     padding:6px 14px; border-radius:6px;
     box-shadow:0 4px 14px rgba(255,176,32,.5);
@@ -100,12 +129,12 @@
   .strip{
     display:flex; align-items:center; gap:12px;
     padding:12px 16px; border-bottom:1px solid var(--edge-soft);
-    background:rgba(6,12,18,.5); font-family:var(--mono); font-size:11px;
+    background:var(--strip-bg); font-family:var(--mono); font-size:11px;
     color:var(--ink-dim); letter-spacing:.08em;
   }
   .track{
     position:relative; flex:1; height:6px; border-radius:999px;
-    background:#0a1520; border:1px solid var(--edge-soft); overflow:hidden;
+    background:var(--inset); border:1px solid var(--edge-soft); overflow:hidden;
   }
   .track > i{
     position:absolute; left:0; top:0; bottom:0; width:0%;
@@ -121,7 +150,7 @@
   .hero h1{
     font-family:var(--disp); font-weight:700; font-size:clamp(26px,6.6vw,40px);
     letter-spacing:.02em; margin:0 0 6px; text-wrap:balance;
-    background:linear-gradient(180deg,#eaf6ff,#8fd4ef);
+    background:linear-gradient(180deg,var(--h1a),var(--h1b));
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
   .kicker{
@@ -136,7 +165,7 @@
     padding:10px 18px;cursor:pointer;transition:color .15s,background .15s,border-color .15s,box-shadow .15s;
   }
   .lvl:hover{border-color:var(--cyan);color:var(--ink);}
-  .lvl.on{color:#04140b;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(65,211,255,.4);}
+  .lvl.on{color:var(--on-ink);background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(65,211,255,.4);}
   .lvl:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
   .lvlblurb{font-size:12px;color:var(--ink-dim);margin:0 auto 20px;max-width:42ch;min-height:1.1em;}
   .notice{font-size:13px;line-height:1.55;color:var(--ink-dim);border-left:3px solid var(--amber);background:rgba(255,176,32,.06);padding:11px 14px;border-radius:0 8px 8px 0;max-width:54ch;margin:0 auto 22px;text-align:left;}
@@ -183,18 +212,18 @@
     padding:14px 16px; color:var(--ink); font-family:var(--body); font-size:15px;
     cursor:pointer; transition:border-color .15s, background .15s, transform .05s;
   }
-  .opt:hover:not(:disabled){border-color:var(--cyan);background:#12222f;}
+  .opt:hover:not(:disabled){border-color:var(--cyan);background:var(--opt-hover);}
   .opt:active:not(:disabled){transform:translateY(1px);}
   .opt:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
   .opt .key{
     flex:none; width:26px;height:26px;border-radius:6px; display:grid;place-items:center;
     font-family:var(--mono);font-size:12px;font-weight:600;
-    background:#0a1520;border:1px solid var(--edge);color:var(--ink-dim);
+    background:var(--inset);border:1px solid var(--edge);color:var(--ink-dim);
   }
   .opt.correct{border-color:var(--green);background:rgba(62,224,143,.12);}
-  .opt.correct .key{background:var(--green);color:#04140b;border-color:var(--green);}
+  .opt.correct .key{background:var(--green);color:var(--on-ink);border-color:var(--green);}
   .opt.wrong{border-color:var(--red);background:rgba(255,91,110,.12);}
-  .opt.wrong .key{background:var(--red);color:#1a0508;border-color:var(--red);}
+  .opt.wrong .key{background:var(--red);color:var(--on-ink);border-color:var(--red);}
   .opt:disabled{cursor:default;}
   .opt.dim{opacity:.5;}
 
@@ -213,17 +242,17 @@
   .explain.no .tag{color:var(--red);}
 
   .actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;}
-  .btn.flag{background:transparent;color:var(--amber);border-color:#5a4a1e;box-shadow:none;}
+  .btn.flag{background:transparent;color:var(--amber);border-color:var(--flag-border);box-shadow:none;}
   .btn.flag:hover{filter:none;border-color:var(--amber);background:rgba(255,176,32,.1);}
-  .btn.flag.on{background:var(--amber);color:#1a0f00;border-color:var(--amber);}
-  .btn.ghost.danger{color:var(--red);border-color:#5a2730;}
+  .btn.flag.on{background:var(--amber);color:var(--on-ink);border-color:var(--amber);}
+  .btn.ghost.danger{color:var(--red);border-color:var(--danger-border);}
   .btn.ghost.danger:hover{border-color:var(--red);background:rgba(255,91,110,.08);}
   .linkbtn{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--amber);background:transparent;border:none;cursor:pointer;padding:8px;text-decoration:underline;text-underline-offset:3px;}
   .linkbtn:hover{color:#ffd27a;}
   .linkbtn.danger{color:var(--red);}
   .linkbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
   .flaglbl{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px;}
-  .flagnote,.reportbox,.flaginput{width:100%;box-sizing:border-box;background:#0a1622;color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical;}
+  .flagnote,.reportbox,.flaginput{width:100%;box-sizing:border-box;background:var(--inset);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical;}
   .flagnote:focus,.reportbox:focus,.flaginput:focus{outline:none;border-color:var(--cyan);}
   .flaginput{margin:0 0 14px;}
   .reportbox{margin:0 0 10px;color:var(--ink-dim);}
@@ -311,11 +340,13 @@
     .question{margin-bottom:16px;}
   }
 </style>
+<script>try{var _t=localStorage.getItem("aviationiq_theme");if(_t==="light"||_t==="dark")document.documentElement.setAttribute("data-theme",_t);}catch(e){}</script>
 
 <div class="frame">
   <div class="topline">
     <div class="brand">AVIATION <b>IQ</b> CHECK</div>
     <div class="topright">
+      <button class="sndbtn" id="themeBtn" title="Light / dark mode" aria-label="Toggle light or dark mode">☀</button>
       <button class="sndbtn" id="sndBtn" aria-pressed="true" title="Toggle warning sounds">♪ SOUND</button>
       <div class="tail" id="tail">STANDBY</div>
     </div>
@@ -2244,6 +2275,29 @@
     if(soundOn){ ac(); if(rafId) startEngine(); } else { stopEngine(0.05); }
   });
 
+  // ---- Light / dark theme: follow the device by default, with a manual override ----
+  const THEME_KEY="aviationiq_theme";
+  function storedTheme(){ try{ const v=localStorage.getItem(THEME_KEY); return (v==="light"||v==="dark")?v:null; }catch(e){ return null; } }
+  function systemDark(){ return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches); }
+  function effectiveTheme(){ return storedTheme() || (systemDark() ? "dark" : "light"); }
+  function applyTheme(){
+    const stored=storedTheme(), root=document.documentElement;
+    if(stored) root.setAttribute("data-theme",stored); else root.removeAttribute("data-theme");
+    const eff=effectiveTheme();
+    const tb=document.getElementById("themeBtn");
+    if(tb){ tb.textContent = eff==="dark" ? "☀" : "☾"; tb.setAttribute("aria-label", eff==="dark"?"Switch to light mode":"Switch to dark mode"); }
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.setAttribute("content", eff==="dark" ? "#070c12" : "#e9eef3");
+  }
+  const themeBtn=document.getElementById("themeBtn");
+  if(themeBtn) themeBtn.addEventListener("click",()=>{ try{ localStorage.setItem(THEME_KEY, effectiveTheme()==="dark"?"light":"dark"); }catch(e){} applyTheme(); });
+  if(window.matchMedia){
+    const mq=window.matchMedia("(prefers-color-scheme: dark)");
+    const onc=()=>{ if(!storedTheme()) applyTheme(); };
+    if(mq.addEventListener) mq.addEventListener("change",onc); else if(mq.addListener) mq.addListener(onc);
+  }
+  applyTheme();
+
   function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
 
   // Anti-repeat: remember questions already seen (per browser) and deal from the
@@ -2417,7 +2471,7 @@
         <span class="mid">Q${String(idx+1).padStart(2,"0")} / ${String(deck.length).padStart(2,"0")}</span>
         <div class="timer" id="timer" aria-label="time remaining">
           <svg width="44" height="44" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="${TR}" fill="none" stroke="#0a1622" stroke-width="4"/>
+            <circle cx="22" cy="22" r="${TR}" fill="none" style="stroke:var(--inset)" stroke-width="4"/>
             <circle id="tRing" cx="22" cy="22" r="${TR}" fill="none" stroke="#41d3ff" stroke-width="4"
               stroke-linecap="round" stroke-dasharray="${TCIRC.toFixed(2)}" stroke-dashoffset="0"/>
           </svg>
@@ -2525,7 +2579,7 @@
         <p class="kicker">Post-Flight Debrief · ${difficulty.name}</p>
         <div class="gauge">
           <svg width="190" height="190" viewBox="0 0 190 190">
-            <circle cx="95" cy="95" r="${R}" fill="none" stroke="#0a1622" stroke-width="12"/>
+            <circle cx="95" cy="95" r="${R}" fill="none" style="stroke:var(--inset)" stroke-width="12"/>
             <circle cx="95" cy="95" r="${R}" fill="none" stroke="${col}" stroke-width="12"
               stroke-linecap="round" stroke-dasharray="${dash} ${CIRC}"
               style="filter:drop-shadow(0 0 8px ${col});transition:stroke-dasharray .9s cubic-bezier(.4,0,.2,1)"/>
