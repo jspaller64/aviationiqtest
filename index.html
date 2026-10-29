@@ -36,18 +36,18 @@
   /* day cockpit (light) — used when the device is in light mode, unless dark is forced */
   @media (prefers-color-scheme: light){
     :root:not([data-theme="dark"]){
-      --bg:#e9eef3; --glow:#dbe7f1; --panel:#ffffff; --panel-2:#f3f7fb;
-      --edge:#c2d2de; --edge-soft:#dde6ee; --ink:#102634; --ink-dim:#5a7183;
-      --cyan:#0b7aa3; --green:#1f9d5f; --amber:#b4700a; --red:#d8384a;
+      --bg:#dde5ec; --glow:#cedfea; --panel:#ffffff; --panel-2:#eef4f9;
+      --edge:#93a9bb; --edge-soft:#bccbd8; --ink:#04101a; --ink-dim:#233442;
+      --cyan:#05506d; --green:#0d6237; --amber:#73430a; --red:#a81f2e;
       --inset:#e7eef4; --opt-hover:#eef5fb; --strip-bg:rgba(236,242,248,.75);
       --h1a:#143449; --h1b:#1b7fa6; --flag-border:#e2c78c; --danger-border:#eab6bd;
-      --panel-shadow:rgba(20,45,70,.13); --on-ink:#ffffff;
+      --panel-shadow:rgba(20,45,70,.16); --on-ink:#ffffff;
     }
   }
   :root[data-theme="light"]{
-    --bg:#e9eef3; --glow:#dbe7f1; --panel:#ffffff; --panel-2:#f3f7fb;
-    --edge:#c2d2de; --edge-soft:#dde6ee; --ink:#102634; --ink-dim:#5a7183;
-    --cyan:#0b7aa3; --green:#1f9d5f; --amber:#b4700a; --red:#d8384a;
+    --bg:#dde5ec; --glow:#cedfea; --panel:#ffffff; --panel-2:#eef4f9;
+    --edge:#93a9bb; --edge-soft:#bccbd8; --ink:#04101a; --ink-dim:#233442;
+    --cyan:#05506d; --green:#0d6237; --amber:#73430a; --red:#a81f2e;
     --inset:#e7eef4; --opt-hover:#eef5fb; --strip-bg:rgba(236,242,248,.75);
     --h1a:#143449; --h1b:#1b7fa6; --flag-border:#e2c78c; --danger-border:#eab6bd;
     --panel-shadow:rgba(20,45,70,.13); --on-ink:#ffffff;
@@ -60,6 +60,7 @@
       var(--bg);
     color:var(--ink);
     font-family:var(--body);
+    font-weight:500;
     min-height:100vh;
     display:flex;
     align-items:center;
